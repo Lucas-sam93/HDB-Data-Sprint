@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HDB Resale Price Predictor · WOW! Real Estate</title>
+  <!-- Google Fonts: Cinzel (headings) + Josefin Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+  <!-- Skip link for keyboard users -->
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- Hero -->
+  <header class="hero" role="banner">
+    <div class="hero-glow hero-glow-1" aria-hidden="true"></div>
+    <div class="hero-glow hero-glow-2" aria-hidden="true"></div>
+    <div class="hero-content">
+      <div class="hero-brand">WOW! REAL ESTATE</div>
+      <h1 class="hero-title">HDB Resale Price Predictor</h1>
+      <p class="hero-subtitle">AI-powered estimates &middot; Singapore public housing market</p>
+    </div>
+  </header>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav" role="tablist" aria-label="Tool selection">
+    <button
+      role="tab"
+      aria-selected="{{ 'true' if active_tab == 'estimator' else 'false' }}"
+      aria-controls="tab-estimator"
+      class="tab-btn {% if active_tab == 'estimator' %}active{% endif %}"
+      onclick="showTab('estimator')"
+      id="btn-estimator"
+    >Price Estimator</button>
+    <button
+      role="tab"
+      aria-selected="{{ 'true' if active_tab == 'recommender' else 'false' }}"
+      aria-controls="tab-recommender"
+      class="tab-btn {% if active_tab == 'recommender' %}active{% endif %}"
+      onclick="showTab('recommender')"
+      id="btn-recommender"
+    >Recommender</button>
+  </nav>
+
+  <main class="container" id="main">
+
+    <!-- Tab 1: Price Estimator -->
+    <section
+      class="tab-panel {% if active_tab == 'estimator' %}active{% endif %}"
+      id="tab-estimator"
+      role="tabpanel"
+      aria-labelledby="btn-estimator"
+    >
+      <form class="card" action="/predict" method="POST" novalidate>
+        <h2 class="card-title">Property Details</h2>
+        <p class="card-hint">Fill in as many fields as you like — all are optional.</p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="flat_type">Flat Type</label>
+            <select name="flat_type" id="flat_type" autocomplete="off">
+              <option value="">— select —</option>
+              <option>1 ROOM</option>
+              <option>2 ROOM</option>
+              <option>3 ROOM</option>
+              <option>4 ROOM</option>
+              <option>5 ROOM</option>
+              <option>EXECUTIVE</option>
+              <option>MULTI-GENERATION</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="town">Town</label>
+            <select name="town" id="town" autocomplete="off">
+              <option value="">— select —</option>
+              <option>ANG MO KIO</option>
+              <option>BEDOK</option>
+              <option>BISHAN</option>
+              <option>BUKIT BATOK</option>
+              <option>BUKIT MERAH</option>
+              <option>BUKIT PANJANG</option>
+              <option>BUKIT TIMAH</option>
+              <option>CENTRAL AREA</option>
+              <option>CHOA CHU KANG</option>
+              <option>CLEMENTI</option>
+              <option>GEYLANG</option>
+              <option>HOUGANG</option>
+              <option>JURONG EAST</option>
+              <option>JURONG WEST</option>
+              <option>KALLANG/WHAMPOA</option>
+              <option>MARINE PARADE</option>
+              <option>PASIR RIS</option>
+              <option>PUNGGOL</option>
+              <option>QUEENSTOWN</option>
+              <option>SEMBAWANG</option>
+              <option>SENGKANG</option>
+              <option>SERANGOON</option>
+              <option>TAMPINES</option>
+              <option>TOA PAYOH</option>
+              <option>WOODLANDS</option>
+              <option>YISHUN</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="floor_area_sqm">Floor Area (sqm)</label>
+            <input type="number" name="floor_area_sqm" id="floor_area_sqm"
+              placeholder="e.g. 90" min="1" inputmode="numeric" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="storey">Storey</label>
+            <input type="number" name="storey" id="storey"
+              placeholder="e.g. 8" min="1" inputmode="numeric" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="hdb_age">HDB Age (years)</label>
+            <input type="number" name="hdb_age" id="hdb_age"
+              placeholder="e.g. 25" min="0" inputmode="numeric" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="flat_model">Flat Model</label>
+            <select name="flat_model" id="flat_model" autocomplete="off">
+              <option value="">— select —</option>
+              <option>IMPROVED</option>
+              <option>NEW GENERATION</option>
+              <option>MODEL A</option>
+              <option>PREMIUM APARTMENT</option>
+              <option>SIMPLIFIED</option>
+              <option>STANDARD</option>
+              <option>MAISONETTE</option>
+              <option>APARTMENT</option>
+              <option>TERRACE</option>
+              <option>ADJOINED FLAT</option>
+              <option>TYPE S1</option>
+              <option>TYPE S2</option>
+              <option>MODEL A2</option>
+              <option>DBSS</option>
+              <option>SPECIAL</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="mrt_distance">MRT Distance (m)</label>
+            <input type="number" name="mrt_distance" id="mrt_distance"
+              placeholder="e.g. 350" min="0" inputmode="numeric" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="mall_distance">Mall Distance (m)</label>
+            <input type="number" name="mall_distance" id="mall_distance"
+              placeholder="e.g. 500" min="0" inputmode="numeric" autocomplete="off" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" aria-label="Estimate resale price">
+          ESTIMATE PRICE &rarr;
+        </button>
+
+        <!-- Result panel: aria-live announces result to screen readers -->
+        <div
+          class="result-panel {% if price %}visible{% endif %}"
+          role="alert"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div class="result-label">Estimated Resale Price</div>
+          <div class="result-price">{{ price or "$—" }}</div>
+          {% if price_note %}
+          <div class="result-note">{{ price_note }}</div>
+          {% endif %}
+        </div>
+      </form>
+    </section>
+
+    <!-- Tab 2: Recommender -->
+    <section
+      class="tab-panel {% if active_tab == 'recommender' %}active{% endif %}"
+      id="tab-recommender"
+      role="tabpanel"
+      aria-labelledby="btn-recommender"
+    >
+      <form class="card" action="/recommend" method="POST" novalidate>
+        <h2 class="card-title">Find Your Ideal Flat</h2>
+        <p class="card-hint">Tell us your preferences and we'll recommend the best options.</p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="budget_min">Min Budget (SGD)</label>
+            <input type="number" name="budget_min" id="budget_min"
+              placeholder="e.g. 300,000" min="0" step="10000" inputmode="numeric" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="budget_max">Max Budget (SGD)</label>
+            <input type="number" name="budget_max" id="budget_max"
+              placeholder="e.g. 600,000" min="0" step="10000" inputmode="numeric" autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="preferred_town">Preferred Town</label>
+            <select name="preferred_town" id="preferred_town" autocomplete="off">
+              <option value="">— any —</option>
+              <option>ANG MO KIO</option>
+              <option>BEDOK</option>
+              <option>BISHAN</option>
+              <option>BUKIT BATOK</option>
+              <option>BUKIT MERAH</option>
+              <option>BUKIT PANJANG</option>
+              <option>BUKIT TIMAH</option>
+              <option>CENTRAL AREA</option>
+              <option>CHOA CHU KANG</option>
+              <option>CLEMENTI</option>
+              <option>GEYLANG</option>
+              <option>HOUGANG</option>
+              <option>JURONG EAST</option>
+              <option>JURONG WEST</option>
+              <option>KALLANG/WHAMPOA</option>
+              <option>MARINE PARADE</option>
+              <option>PASIR RIS</option>
+              <option>PUNGGOL</option>
+              <option>QUEENSTOWN</option>
+              <option>SEMBAWANG</option>
+              <option>SENGKANG</option>
+              <option>SERANGOON</option>
+              <option>TAMPINES</option>
+              <option>TOA PAYOH</option>
+              <option>WOODLANDS</option>
+              <option>YISHUN</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="rec_flat_type">Flat Type</label>
+            <select name="rec_flat_type" id="rec_flat_type" autocomplete="off">
+              <option value="">— any —</option>
+              <option>1 ROOM</option>
+              <option>2 ROOM</option>
+              <option>3 ROOM</option>
+              <option>4 ROOM</option>
+              <option>5 ROOM</option>
+              <option>EXECUTIVE</option>
+              <option>MULTI-GENERATION</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" aria-label="Get flat recommendation">
+          GET RECOMMENDATION &rarr;
+        </button>
+
+        <!-- Result panel -->
+        <div
+          class="result-panel {% if recommendation %}visible{% endif %}"
+          role="alert"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div class="result-label">Recommendation</div>
+          <div class="result-price result-text">{{ recommendation or "—" }}</div>
+        </div>
+      </form>
+    </section>
+
+  </main>
+
+  <script>
+    function showTab(tab) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.getElementById('tab-' + tab).classList.add('active');
+      const btn = document.getElementById('btn-' + tab);
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+    }
+  </script>
+
+</body>
+</html>
