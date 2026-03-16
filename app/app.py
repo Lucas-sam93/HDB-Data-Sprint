@@ -38,4 +38,5 @@ def recommend():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    import os
+    app.run(debug=os.getenv("FLASK_DEBUG", "0") == "1", use_reloader=False)
