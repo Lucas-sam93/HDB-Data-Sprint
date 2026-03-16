@@ -10,3 +10,10 @@ app/models/*.pkl
 
 # Local dev runner
 run.bat
+
+# CatBoost training logs
+notebooks/catboost_info/
+
+# OS metadata
+.DS_Store
+*.DS_Store
