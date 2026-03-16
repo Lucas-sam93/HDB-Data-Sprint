@@ -7,3 +7,6 @@ app/models/*.pkl
 
 # Notebook backup files
 *.conflict_backup
+
+# Local dev runner
+run.bat
