@@ -6,6 +6,35 @@ from pathlib import Path
 from flask import Flask, render_template, request
 import joblib
 
+_TOWN_DESCRIPTIONS = {
+    "ANG MO KIO":      "Mature estate · Central-North",
+    "BEDOK":           "Mature estate · East",
+    "BISHAN":          "Mature estate · Central",
+    "BUKIT BATOK":     "Mature estate · West",
+    "BUKIT MERAH":     "Mature estate · Central-South",
+    "BUKIT PANJANG":   "Non-mature · West",
+    "BUKIT TIMAH":     "Mature estate · Central",
+    "CENTRAL AREA":    "City centre · Central",
+    "CHOA CHU KANG":   "Non-mature · West",
+    "CLEMENTI":        "Mature estate · West",
+    "GEYLANG":         "Mature estate · Central-East",
+    "HOUGANG":         "Mature estate · North-East",
+    "JURONG EAST":     "Non-mature · West",
+    "JURONG WEST":     "Non-mature · West",
+    "KALLANG/WHAMPOA": "Mature estate · Central",
+    "MARINE PARADE":   "Mature estate · East",
+    "PASIR RIS":       "Non-mature · East",
+    "PUNGGOL":         "Non-mature · North-East",
+    "QUEENSTOWN":      "Mature estate · Central",
+    "SEMBAWANG":       "Non-mature · North",
+    "SENGKANG":        "Non-mature · North-East",
+    "SERANGOON":       "Mature estate · North-East",
+    "TAMPINES":        "Non-mature · East",
+    "TOA PAYOH":       "Mature estate · Central",
+    "WOODLANDS":       "Non-mature · North",
+    "YISHUN":          "Non-mature · North",
+}
+
 app = Flask(__name__)
 
 _MODEL_DIR = Path(__file__).parent / "models"
@@ -51,6 +80,7 @@ def predict():
             price_note="Model not loaded — run the export cell in Regression_Models_Comparison.ipynb first.",
         )
 
+    prediction = 0
     try:
         # --- Read form inputs (fall back to median when blank) ---
         floor_area  = float(request.form.get("floor_area_sqm") or _FEATURE_MEDIANS.get("floor_area_sqm", 90))
@@ -103,16 +133,30 @@ def predict():
 
         features = np.array([[row[col] for col in _FEATURE_COLS]])
         prediction = _xgb_reg.predict(features)[0]
-        price_str = f"${prediction:,.0f}"
+        price_str      = f"${prediction:,.0f}"
+        price_low_str  = f"${prediction * 0.90:,.0f}"
+        price_high_str = f"${prediction * 1.10:,.0f}"
         note = "Estimate based on available inputs; other features use dataset medians."
+
+        used_inputs = []
+        if request.form.get("flat_type"):      used_inputs.append(request.form.get("flat_type").title())
+        if request.form.get("town"):           used_inputs.append(request.form.get("town").title())
+        if request.form.get("floor_area_sqm"): used_inputs.append(f"{request.form.get('floor_area_sqm')} sqm")
+        if request.form.get("storey"):         used_inputs.append(f"Storey {request.form.get('storey')}")
+        if request.form.get("hdb_age"):        used_inputs.append(f"{request.form.get('hdb_age')}yr old")
     except Exception as e:
-        price_str = "—"
+        price_str = price_low_str = price_high_str = "—"
+        used_inputs = []
         note = f"Error: {e}"
 
     return render_template(
         "index.html",
         active_tab="estimator",
         price=price_str,
+        price_raw=int(prediction) if isinstance(prediction, (int, float)) else 0,
+        price_low=price_low_str,
+        price_high=price_high_str,
+        used_inputs=used_inputs,
         price_note=note,
     )
 
@@ -144,9 +188,17 @@ def recommend():
         pred_town = _TOWN_CLASSES[pred_idx]
         result    = f"Recommended Town: {pred_town}"
     except Exception as e:
+        pred_town = None
         result = f"Error: {e}"
 
-    return render_template("index.html", active_tab="recommender", recommendation=result)
+    rec_desc = _TOWN_DESCRIPTIONS.get(pred_town, "") if pred_town else ""
+    return render_template(
+        "index.html",
+        active_tab="recommender",
+        recommendation=result,
+        rec_town=pred_town or "—",
+        rec_desc=rec_desc,
+    )
 
 
 if __name__ == "__main__":

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HDB Resale Price Predictor · WOW! Real Estate</title>
-  <!-- Google Fonts: Cinzel (headings) + Josefin Sans (body) -->
+  <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 <body>
@@ -19,6 +19,10 @@
   <header class="hero" role="banner">
     <div class="hero-glow hero-glow-1" aria-hidden="true"></div>
     <div class="hero-glow hero-glow-2" aria-hidden="true"></div>
+
+    <!-- Theme toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+
     <div class="hero-content">
       <div class="hero-brand">WOW! REAL ESTATE</div>
       <h1 class="hero-title">HDB Resale Price Predictor</h1>
@@ -48,7 +52,7 @@
 
   <main class="container" id="main">
 
-    <!-- Tab 1: Price Estimator -->
+    <!-- ── Tab 1: Price Estimator ── -->
     <section
       class="tab-panel {% if active_tab == 'estimator' %}active{% endif %}"
       id="tab-estimator"
@@ -60,71 +64,62 @@
         <p class="card-hint">Fill in as many fields as you like — all are optional.</p>
 
         <div class="form-grid">
-          <div class="field">
-            <label for="flat_type">Flat Type</label>
-            <select name="flat_type" id="flat_type" autocomplete="off">
-              <option value="">— select —</option>
-              <option>1 ROOM</option>
-              <option>2 ROOM</option>
-              <option>3 ROOM</option>
-              <option>4 ROOM</option>
-              <option>5 ROOM</option>
-              <option>EXECUTIVE</option>
-              <option>MULTI-GENERATION</option>
-            </select>
+
+          <!-- Flat Type — pill selector -->
+          <div class="field" style="grid-column: 1 / -1;">
+            <label>Flat Type</label>
+            <div class="pill-group" role="group" aria-label="Flat type">
+              <input type="radio" name="flat_type" id="ft_1r" value="1 ROOM" class="pill-option">
+              <label for="ft_1r" class="pill-label">1 Room</label>
+              <input type="radio" name="flat_type" id="ft_2r" value="2 ROOM" class="pill-option">
+              <label for="ft_2r" class="pill-label">2 Room</label>
+              <input type="radio" name="flat_type" id="ft_3r" value="3 ROOM" class="pill-option">
+              <label for="ft_3r" class="pill-label">3 Room</label>
+              <input type="radio" name="flat_type" id="ft_4r" value="4 ROOM" class="pill-option">
+              <label for="ft_4r" class="pill-label">4 Room</label>
+              <input type="radio" name="flat_type" id="ft_5r" value="5 ROOM" class="pill-option">
+              <label for="ft_5r" class="pill-label">5 Room</label>
+              <input type="radio" name="flat_type" id="ft_ex" value="EXECUTIVE" class="pill-option">
+              <label for="ft_ex" class="pill-label">Executive</label>
+              <input type="radio" name="flat_type" id="ft_mg" value="MULTI-GENERATION" class="pill-option">
+              <label for="ft_mg" class="pill-label">Multi-Gen</label>
+            </div>
           </div>
 
+          <!-- Town — typeahead -->
           <div class="field">
-            <label for="town">Town</label>
-            <select name="town" id="town" autocomplete="off">
-              <option value="">— select —</option>
-              <option>ANG MO KIO</option>
-              <option>BEDOK</option>
-              <option>BISHAN</option>
-              <option>BUKIT BATOK</option>
-              <option>BUKIT MERAH</option>
-              <option>BUKIT PANJANG</option>
-              <option>BUKIT TIMAH</option>
-              <option>CENTRAL AREA</option>
-              <option>CHOA CHU KANG</option>
-              <option>CLEMENTI</option>
-              <option>GEYLANG</option>
-              <option>HOUGANG</option>
-              <option>JURONG EAST</option>
-              <option>JURONG WEST</option>
-              <option>KALLANG/WHAMPOA</option>
-              <option>MARINE PARADE</option>
-              <option>PASIR RIS</option>
-              <option>PUNGGOL</option>
-              <option>QUEENSTOWN</option>
-              <option>SEMBAWANG</option>
-              <option>SENGKANG</option>
-              <option>SERANGOON</option>
-              <option>TAMPINES</option>
-              <option>TOA PAYOH</option>
-              <option>WOODLANDS</option>
-              <option>YISHUN</option>
-            </select>
+            <label for="town_input">Town</label>
+            <div class="typeahead-wrapper">
+              <input type="text" id="town_input" class="typeahead-input"
+                placeholder="Search town…" autocomplete="off"
+                style="background:var(--color-input-bg);border:1.5px solid var(--color-border);border-radius:var(--radius-input);color:var(--color-text);font-family:inherit;font-size:0.9rem;padding:0.65rem 0.9rem;outline:none;min-height:44px;width:100%;transition:border-color 150ms ease-out,box-shadow 150ms ease-out;" />
+              <input type="hidden" name="town" id="town_value" />
+              <div class="typeahead-dropdown" id="town_dropdown"></div>
+            </div>
           </div>
 
+          <!-- Floor Area -->
           <div class="field">
             <label for="floor_area_sqm">Floor Area (sqm)</label>
             <input type="number" name="floor_area_sqm" id="floor_area_sqm"
               placeholder="e.g. 90" min="1" inputmode="numeric" autocomplete="off" />
           </div>
 
+          <!-- Storey -->
           <div class="field">
             <label for="storey">Storey</label>
             <input type="number" name="storey" id="storey"
               placeholder="e.g. 8" min="1" inputmode="numeric" autocomplete="off" />
           </div>
 
+          <!-- HDB Age -->
           <div class="field">
             <label for="hdb_age">HDB Age (years)</label>
             <input type="number" name="hdb_age" id="hdb_age"
               placeholder="e.g. 25" min="0" inputmode="numeric" autocomplete="off" />
           </div>
 
+          <!-- Flat Model -->
           <div class="field">
             <label for="flat_model">Flat Model</label>
             <select name="flat_model" id="flat_model" autocomplete="off">
@@ -147,24 +142,39 @@
             </select>
           </div>
 
-          <div class="field">
-            <label for="mrt_distance">MRT Distance (m)</label>
-            <input type="number" name="mrt_distance" id="mrt_distance"
-              placeholder="e.g. 350" min="0" inputmode="numeric" autocomplete="off" />
+          <!-- MRT Distance — slider -->
+          <div class="field slider-field">
+            <label for="mrt_distance">MRT Distance</label>
+            <input type="range" name="mrt_distance" id="mrt_distance"
+              min="100" max="2000" step="50" value="500" />
+            <div class="slider-labels">
+              <span>Nearby &lt;500m</span>
+              <span>~1 km</span>
+              <span>Far &gt;2 km</span>
+            </div>
+            <div class="slider-value" id="mrt_val">500 m</div>
           </div>
 
-          <div class="field">
-            <label for="mall_distance">Mall Distance (m)</label>
-            <input type="number" name="mall_distance" id="mall_distance"
-              placeholder="e.g. 500" min="0" inputmode="numeric" autocomplete="off" />
+          <!-- Mall Distance — slider -->
+          <div class="field slider-field">
+            <label for="mall_distance">Mall Distance</label>
+            <input type="range" name="mall_distance" id="mall_distance"
+              min="100" max="2000" step="50" value="500" />
+            <div class="slider-labels">
+              <span>Nearby &lt;500m</span>
+              <span>~1 km</span>
+              <span>Far &gt;2 km</span>
+            </div>
+            <div class="slider-value" id="mall_val">500 m</div>
           </div>
+
         </div>
 
         <button type="submit" class="btn-primary" aria-label="Estimate resale price">
-          ESTIMATE PRICE &rarr;
+          Estimate Price &rarr;
         </button>
 
-        <!-- Result panel: aria-live announces result to screen readers -->
+        <!-- Result panel -->
         <div
           class="result-panel {% if price %}visible{% endif %}"
           role="alert"
@@ -172,7 +182,18 @@
           aria-atomic="true"
         >
           <div class="result-label">Estimated Resale Price</div>
-          <div class="result-price">{{ price or "$—" }}</div>
+          <div class="result-price" id="result-price-display"
+            data-target="{{ price_raw or 0 }}">{{ price or "$—" }}</div>
+          {% if price_low and price_high %}
+          <div class="result-range">Range: {{ price_low }} – {{ price_high }}</div>
+          {% endif %}
+          {% if used_inputs %}
+          <div class="result-chips">
+            {% for inp in used_inputs %}
+            <span class="result-chip">{{ inp }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
           {% if price_note %}
           <div class="result-note">{{ price_note }}</div>
           {% endif %}
@@ -180,7 +201,7 @@
       </form>
     </section>
 
-    <!-- Tab 2: Recommender -->
+    <!-- ── Tab 2: Recommender ── -->
     <section
       class="tab-panel {% if active_tab == 'recommender' %}active{% endif %}"
       id="tab-recommender"
@@ -188,37 +209,55 @@
       aria-labelledby="btn-recommender"
     >
       <form class="card" action="/recommend" method="POST" novalidate>
-        <h2 class="card-title">Find Your Ideal Flat</h2>
+        <h2 class="card-title">Find Your Ideal Town</h2>
         <p class="card-hint">Enter your property preferences and we'll recommend the best town for you.</p>
 
         <div class="form-grid">
-          <div class="field">
-            <label for="mrt_distance">MRT Distance (m)</label>
-            <input type="number" name="mrt_distance" id="mrt_distance"
-              placeholder="e.g. 350" min="0" inputmode="numeric" autocomplete="off" />
+
+          <!-- MRT Distance — slider -->
+          <div class="field slider-field">
+            <label for="rec_mrt_distance">MRT Distance</label>
+            <input type="range" name="mrt_distance" id="rec_mrt_distance"
+              min="100" max="2000" step="50" value="500" />
+            <div class="slider-labels">
+              <span>Nearby &lt;500m</span>
+              <span>~1 km</span>
+              <span>Far &gt;2 km</span>
+            </div>
+            <div class="slider-value" id="rec_mrt_val">500 m</div>
           </div>
 
-          <div class="field">
-            <label for="hawker_distance">Hawker Centre Distance (m)</label>
-            <input type="number" name="hawker_distance" id="hawker_distance"
-              placeholder="e.g. 200" min="0" inputmode="numeric" autocomplete="off" />
+          <!-- Hawker Distance — slider -->
+          <div class="field slider-field">
+            <label for="hawker_distance">Hawker Centre Distance</label>
+            <input type="range" name="hawker_distance" id="hawker_distance"
+              min="50" max="1500" step="50" value="300" />
+            <div class="slider-labels">
+              <span>Nearby &lt;300m</span>
+              <span>~700m</span>
+              <span>Far &gt;1.5 km</span>
+            </div>
+            <div class="slider-value" id="hawker_val">300 m</div>
           </div>
 
+          <!-- HDB Age -->
           <div class="field">
-            <label for="hdb_age">HDB Age (years)</label>
-            <input type="number" name="hdb_age" id="hdb_age"
+            <label for="rec_hdb_age">HDB Age (years)</label>
+            <input type="number" name="hdb_age" id="rec_hdb_age"
               placeholder="e.g. 20" min="0" inputmode="numeric" autocomplete="off" />
           </div>
 
+          <!-- Max Floor Level -->
           <div class="field">
             <label for="max_floor_lvl">Max Floor Level</label>
             <input type="number" name="max_floor_lvl" id="max_floor_lvl"
               placeholder="e.g. 12" min="1" inputmode="numeric" autocomplete="off" />
           </div>
+
         </div>
 
         <button type="submit" class="btn-primary" aria-label="Get town recommendation">
-          GET RECOMMENDATION &rarr;
+          Get Recommendation &rarr;
         </button>
 
         <!-- Result panel -->
@@ -228,8 +267,11 @@
           aria-live="polite"
           aria-atomic="true"
         >
-          <div class="result-label">Recommendation</div>
-          <div class="result-price result-text">{{ recommendation or "—" }}</div>
+          <div class="result-label">Recommended Town</div>
+          <div class="result-town">{{ rec_town or "—" }}</div>
+          {% if rec_desc %}
+          <div class="result-town-desc">{{ rec_desc }}</div>
+          {% endif %}
         </div>
       </form>
     </section>
@@ -237,6 +279,107 @@
   </main>
 
   <script>
+    // ── Theme toggle ─────────────────────────────────────────
+    const html = document.documentElement;
+    const toggleBtn = document.getElementById('themeToggle');
+    const saved = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-theme', saved);
+    toggleBtn.textContent = saved === 'dark' ? '☀️' : '🌙';
+
+    toggleBtn.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      toggleBtn.textContent = next === 'dark' ? '☀️' : '🌙';
+    });
+
+    // ── Town typeahead ────────────────────────────────────────
+    const TOWNS = [
+      "ANG MO KIO","BEDOK","BISHAN","BUKIT BATOK","BUKIT MERAH","BUKIT PANJANG",
+      "BUKIT TIMAH","CENTRAL AREA","CHOA CHU KANG","CLEMENTI","GEYLANG","HOUGANG",
+      "JURONG EAST","JURONG WEST","KALLANG/WHAMPOA","MARINE PARADE","PASIR RIS",
+      "PUNGGOL","QUEENSTOWN","SEMBAWANG","SENGKANG","SERANGOON","TAMPINES",
+      "TOA PAYOH","WOODLANDS","YISHUN"
+    ];
+
+    const townInput = document.getElementById('town_input');
+    const townValue = document.getElementById('town_value');
+    const townDrop  = document.getElementById('town_dropdown');
+
+    if (townInput) {
+      townInput.addEventListener('focus', () => {
+        renderDropdown(townInput.value);
+      });
+      townInput.addEventListener('input', () => {
+        renderDropdown(townInput.value);
+      });
+      townDrop.addEventListener('click', e => {
+        const item = e.target.closest('.typeahead-item');
+        if (!item) return;
+        townInput.value = item.dataset.val;
+        townValue.value = item.dataset.val;
+        townDrop.classList.remove('open');
+        townInput.style.borderColor = 'var(--color-accent)';
+      });
+      document.addEventListener('click', e => {
+        if (!townInput.contains(e.target) && !townDrop.contains(e.target))
+          townDrop.classList.remove('open');
+      });
+      // Style focus to match other inputs
+      townInput.addEventListener('focus', () => {
+        townInput.style.borderColor = 'var(--color-accent)';
+        townInput.style.boxShadow = '0 0 0 3px rgba(224,82,6,0.15)';
+      });
+      townInput.addEventListener('blur', () => {
+        if (!townValue.value) {
+          townInput.style.borderColor = '';
+          townInput.style.boxShadow = '';
+        }
+      });
+    }
+
+    function renderDropdown(query) {
+      const q = query.trim().toUpperCase();
+      const matches = q ? TOWNS.filter(t => t.includes(q)) : TOWNS;
+      townDrop.innerHTML = matches.map(t =>
+        `<div class="typeahead-item" data-val="${t}">${t}</div>`
+      ).join('');
+      townDrop.classList.toggle('open', matches.length > 0);
+    }
+
+    // ── Sliders ───────────────────────────────────────────────
+    function bindSlider(sliderId, displayId, unit) {
+      const s = document.getElementById(sliderId);
+      const d = document.getElementById(displayId);
+      if (!s || !d) return;
+      d.textContent = s.value + ' ' + unit;
+      s.addEventListener('input', () => { d.textContent = s.value + ' ' + unit; });
+    }
+    bindSlider('mrt_distance',     'mrt_val',      'm');
+    bindSlider('mall_distance',    'mall_val',     'm');
+    bindSlider('rec_mrt_distance', 'rec_mrt_val',  'm');
+    bindSlider('hawker_distance',  'hawker_val',   'm');
+
+    // ── Count-up animation ────────────────────────────────────
+    const priceEl = document.getElementById('result-price-display');
+    if (priceEl) {
+      const raw = parseFloat(priceEl.dataset.target);
+      if (raw > 0) {
+        const duration = 800;
+        const start = performance.now();
+        function tick(now) {
+          const elapsed  = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const ease     = 1 - Math.pow(1 - progress, 3);
+          const val      = Math.round(raw * ease);
+          priceEl.textContent = '$' + val.toLocaleString();
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+    }
+
+    // ── Tab switching ─────────────────────────────────────────
     function showTab(tab) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(b => {
