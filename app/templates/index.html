@@ -189,70 +189,35 @@
     >
       <form class="card" action="/recommend" method="POST" novalidate>
         <h2 class="card-title">Find Your Ideal Flat</h2>
-        <p class="card-hint">Tell us your preferences and we'll recommend the best options.</p>
+        <p class="card-hint">Enter your property preferences and we'll recommend the best town for you.</p>
 
         <div class="form-grid">
           <div class="field">
-            <label for="budget_min">Min Budget (SGD)</label>
-            <input type="number" name="budget_min" id="budget_min"
-              placeholder="e.g. 300,000" min="0" step="10000" inputmode="numeric" autocomplete="off" />
+            <label for="mrt_distance">MRT Distance (m)</label>
+            <input type="number" name="mrt_distance" id="mrt_distance"
+              placeholder="e.g. 350" min="0" inputmode="numeric" autocomplete="off" />
           </div>
 
           <div class="field">
-            <label for="budget_max">Max Budget (SGD)</label>
-            <input type="number" name="budget_max" id="budget_max"
-              placeholder="e.g. 600,000" min="0" step="10000" inputmode="numeric" autocomplete="off" />
+            <label for="hawker_distance">Hawker Centre Distance (m)</label>
+            <input type="number" name="hawker_distance" id="hawker_distance"
+              placeholder="e.g. 200" min="0" inputmode="numeric" autocomplete="off" />
           </div>
 
           <div class="field">
-            <label for="preferred_town">Preferred Town</label>
-            <select name="preferred_town" id="preferred_town" autocomplete="off">
-              <option value="">— any —</option>
-              <option>ANG MO KIO</option>
-              <option>BEDOK</option>
-              <option>BISHAN</option>
-              <option>BUKIT BATOK</option>
-              <option>BUKIT MERAH</option>
-              <option>BUKIT PANJANG</option>
-              <option>BUKIT TIMAH</option>
-              <option>CENTRAL AREA</option>
-              <option>CHOA CHU KANG</option>
-              <option>CLEMENTI</option>
-              <option>GEYLANG</option>
-              <option>HOUGANG</option>
-              <option>JURONG EAST</option>
-              <option>JURONG WEST</option>
-              <option>KALLANG/WHAMPOA</option>
-              <option>MARINE PARADE</option>
-              <option>PASIR RIS</option>
-              <option>PUNGGOL</option>
-              <option>QUEENSTOWN</option>
-              <option>SEMBAWANG</option>
-              <option>SENGKANG</option>
-              <option>SERANGOON</option>
-              <option>TAMPINES</option>
-              <option>TOA PAYOH</option>
-              <option>WOODLANDS</option>
-              <option>YISHUN</option>
-            </select>
+            <label for="hdb_age">HDB Age (years)</label>
+            <input type="number" name="hdb_age" id="hdb_age"
+              placeholder="e.g. 20" min="0" inputmode="numeric" autocomplete="off" />
           </div>
 
           <div class="field">
-            <label for="rec_flat_type">Flat Type</label>
-            <select name="rec_flat_type" id="rec_flat_type" autocomplete="off">
-              <option value="">— any —</option>
-              <option>1 ROOM</option>
-              <option>2 ROOM</option>
-              <option>3 ROOM</option>
-              <option>4 ROOM</option>
-              <option>5 ROOM</option>
-              <option>EXECUTIVE</option>
-              <option>MULTI-GENERATION</option>
-            </select>
+            <label for="max_floor_lvl">Max Floor Level</label>
+            <input type="number" name="max_floor_lvl" id="max_floor_lvl"
+              placeholder="e.g. 12" min="1" inputmode="numeric" autocomplete="off" />
           </div>
         </div>
 
-        <button type="submit" class="btn-primary" aria-label="Get flat recommendation">
+        <button type="submit" class="btn-primary" aria-label="Get town recommendation">
           GET RECOMMENDATION &rarr;
         </button>
 
