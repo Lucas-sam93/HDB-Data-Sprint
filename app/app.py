@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 from pathlib import Path
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import joblib
 
 _TOWN_DESCRIPTIONS = {
@@ -79,12 +79,10 @@ def index():
 @app.route("/predict", methods=["POST"])
 def predict():
     if not _reg_ready:
-        return render_template(
-            "index.html",
-            active_tab="estimator",
-            price="—",
-            price_note="Model not loaded — run the export cell in Regression_Models_Comparison.ipynb first.",
-        )
+        msg = "Model not loaded — run the export cell in Regression_Models_Comparison.ipynb first."
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"price": "—", "price_raw": 0, "price_low": "—", "price_high": "—", "used_inputs": [], "price_note": msg})
+        return render_template("index.html", active_tab="estimator", price="—", price_note=msg)
 
     prediction = 0
     try:
@@ -150,11 +148,20 @@ def predict():
         used_inputs = []
         note = f"Error: {e}"
 
+    if request.headers.get("Accept") == "application/json":
+        return jsonify({
+            "price": price_str,
+            "price_raw": int(float(prediction)),
+            "price_low": price_low_str,
+            "price_high": price_high_str,
+            "used_inputs": used_inputs,
+            "price_note": note,
+        })
     return render_template(
         "index.html",
         active_tab="estimator",
         price=price_str,
-        price_raw=int(prediction) if isinstance(prediction, (int, float)) else 0,
+        price_raw=int(float(prediction)),
         price_low=price_low_str,
         price_high=price_high_str,
         used_inputs=used_inputs,
@@ -165,8 +172,10 @@ def predict():
 @app.route("/recommend", methods=["POST"])
 def recommend():
     if not _clf_ready:
-        result = "Model not loaded — run the export cell in the classification notebook first."
-        return render_template("index.html", active_tab="recommender", recommendation=result)
+        msg = "Model not loaded — run the export cell in the classification notebook first."
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"rec_town": "—", "rec_desc": "", "error": msg})
+        return render_template("index.html", active_tab="recommender", recommendation=msg)
 
     try:
         mrt_dist    = float(request.form.get("mrt_distance") or 0)
@@ -189,6 +198,11 @@ def recommend():
         result = f"Error: {e}"
 
     rec_desc = _TOWN_DESCRIPTIONS.get(pred_town, "") if pred_town else ""
+    if request.headers.get("Accept") == "application/json":
+        return jsonify({
+            "rec_town": pred_town or "—",
+            "rec_desc": rec_desc,
+        })
     return render_template(
         "index.html",
         active_tab="recommender",

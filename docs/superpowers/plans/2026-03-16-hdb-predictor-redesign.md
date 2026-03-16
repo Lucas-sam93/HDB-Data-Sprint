@@ -1,3 +1,827 @@
+# HDB Predictor UI Redesign Implementation Plan
+
+> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Full UI redesign of the HDB Resale Price Predictor — two-column layout, DM Serif Display typography, async fetch submission, sequenced result animations, and all competitor UX patterns from the spec.
+
+**Architecture:** Three-file change. `app.py` gets minimal content-negotiation JSON endpoints (no logic change). `style.css` is a full rewrite keeping the same CSS custom-property token approach. `index.html` is a full rewrite with fetch-based JS replacing the page-reload form submission.
+
+**Tech Stack:** Flask/Jinja2, vanilla CSS (custom properties, grid, clamp), vanilla JS (fetch, FormData, requestAnimationFrame), Google Fonts (DM Serif Display + Inter)
+
+**Spec:** `docs/superpowers/specs/2026-03-16-hdb-predictor-redesign.md`
+
+---
+
+## Chunk 1: Backend JSON Endpoints
+
+### Task 1: Add JSON response support to `/predict`
+
+**Files:**
+- Modify: `app/app.py`
+
+- [ ] **Step 1: Open `app/app.py` and locate the `/predict` route (around line 79)**
+
+- [ ] **Step 2: Add `jsonify` to the Flask import at line 6**
+
+Change:
+```python
+from flask import Flask, render_template, request
+```
+To:
+```python
+from flask import Flask, render_template, request, jsonify
+```
+
+- [ ] **Step 3: Add JSON content-negotiation block at the end of the `predict()` function, before the final `return render_template(...)`**
+
+Find this block near the end of `predict()`:
+```python
+    return render_template(
+        "index.html",
+        active_tab="estimator",
+        price=price_str,
+        price_raw=int(prediction) if isinstance(prediction, (int, float)) else 0,
+        price_low=price_low_str,
+        price_high=price_high_str,
+        used_inputs=used_inputs,
+        price_note=note,
+    )
+```
+
+Replace with:
+```python
+    if request.headers.get("Accept") == "application/json":
+        return jsonify({
+            "price": price_str,
+            "price_raw": int(prediction) if isinstance(prediction, (int, float)) else 0,
+            "price_low": price_low_str,
+            "price_high": price_high_str,
+            "used_inputs": used_inputs,
+            "price_note": note,
+        })
+    return render_template(
+        "index.html",
+        active_tab="estimator",
+        price=price_str,
+        price_raw=int(prediction) if isinstance(prediction, (int, float)) else 0,
+        price_low=price_low_str,
+        price_high=price_high_str,
+        used_inputs=used_inputs,
+        price_note=note,
+    )
+```
+
+- [ ] **Step 4: Verify the model-not-loaded early return also handles JSON**
+
+Find the early return block:
+```python
+    if not _reg_ready:
+        return render_template(
+            "index.html",
+            active_tab="estimator",
+            price="—",
+            price_note="Model not loaded — run the export cell in Regression_Models_Comparison.ipynb first.",
+        )
+```
+
+Replace with:
+```python
+    if not _reg_ready:
+        msg = "Model not loaded — run the export cell in Regression_Models_Comparison.ipynb first."
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"price": "—", "price_raw": 0, "price_low": "—", "price_high": "—", "used_inputs": [], "price_note": msg})
+        return render_template("index.html", active_tab="estimator", price="—", price_note=msg)
+```
+
+- [ ] **Step 5: Test manually**
+
+Start the app: `python app/app.py`
+Run in a separate terminal:
+```bash
+curl -s -X POST http://127.0.0.1:5000/predict \
+  -H "Accept: application/json" \
+  -d "flat_type=4+ROOM&floor_area_sqm=90"
+```
+Expected: JSON response `{"price": "$...", "price_raw": ..., ...}`
+
+Also verify the HTML path still works by visiting `http://127.0.0.1:5000/` in a browser and submitting the form normally.
+
+- [ ] **Step 6: Commit**
+```bash
+git add app/app.py
+git commit -m "feat: add JSON content negotiation to /predict endpoint"
+```
+
+---
+
+### Task 2: Add JSON response support to `/recommend`
+
+**Files:**
+- Modify: `app/app.py`
+
+- [ ] **Step 1: Find the model-not-loaded early return in `recommend()`**
+
+Find:
+```python
+    if not _clf_ready:
+        result = "Model not loaded — run the export cell in the classification notebook first."
+        return render_template("index.html", active_tab="recommender", recommendation=result)
+```
+
+Replace with:
+```python
+    if not _clf_ready:
+        msg = "Model not loaded — run the export cell in the classification notebook first."
+        if request.headers.get("Accept") == "application/json":
+            return jsonify({"rec_town": "—", "rec_desc": "", "error": msg})
+        return render_template("index.html", active_tab="recommender", recommendation=msg)
+```
+
+- [ ] **Step 2: Add JSON content-negotiation at the end of `recommend()`**
+
+Find the final return:
+```python
+    return render_template(
+        "index.html",
+        active_tab="recommender",
+        recommendation=result,
+        rec_town=pred_town or "—",
+        rec_desc=rec_desc,
+    )
+```
+
+Replace with:
+```python
+    if request.headers.get("Accept") == "application/json":
+        return jsonify({
+            "rec_town": pred_town or "—",
+            "rec_desc": rec_desc,
+        })
+    return render_template(
+        "index.html",
+        active_tab="recommender",
+        recommendation=result,
+        rec_town=pred_town or "—",
+        rec_desc=rec_desc,
+    )
+```
+
+- [ ] **Step 3: Test manually**
+```bash
+curl -s -X POST http://127.0.0.1:5000/recommend \
+  -H "Accept: application/json" \
+  -d "mrt_distance=500&hawker_distance=300&hdb_age=20&max_floor_lvl=10"
+```
+Expected: JSON response `{"rec_town": "...", "rec_desc": "..."}`
+
+- [ ] **Step 4: Commit**
+```bash
+git add app/app.py
+git commit -m "feat: add JSON content negotiation to /recommend endpoint"
+```
+
+---
+
+## Chunk 2: CSS Redesign
+
+### Task 3: Write new `style.css` — tokens, reset, base, typography
+
+**Files:**
+- Rewrite: `app/static/style.css`
+
+- [ ] **Step 1: Replace the entire contents of `app/static/style.css` with the following**
+
+```css
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Tokens ────────────────────────────────────────────────── */
+:root {
+  --bg:          #f8fafc;
+  --surface:     #ffffff;
+  --border:      #e5e7eb;
+  --accent:      #E05206;
+  --accent-hi:   #f26522;
+  --navy:        #0f172a;
+  --text:        #0f172a;
+  --muted:       #64748b;
+  --dim:         #9ca3af;
+  --input-bg:    #ffffff;
+  --success:     #16a34a;
+  --r-card:      16px;
+  --r-input:     10px;
+  --ease:        150ms ease-out;
+  --ease-in:     150ms ease-in;
+}
+[data-theme="dark"] {
+  --bg:          #0f172a;
+  --surface:     #1e293b;
+  --border:      #334155;
+  --accent:      #E05206;
+  --accent-hi:   #f26522;
+  --text:        #e2e8f0;
+  --muted:       #94a3b8;
+  --dim:         #64748b;
+  --input-bg:    rgba(15,23,42,0.8);
+  --success:     #4ade80;
+}
+
+/* ── Base ──────────────────────────────────────────────────── */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  transition: background var(--ease), color var(--ease);
+}
+
+/* ── Display font ──────────────────────────────────────────── */
+.font-display {
+  font-family: 'DM Serif Display', Georgia, serif;
+}
+
+/* ── Skip link ─────────────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -999px;
+  left: 0;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 8px 0;
+  z-index: 1000;
+  font-size: 0.875rem;
+}
+.skip-link:focus { top: 0; }
+
+/* ── Focus ring ────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Hero ──────────────────────────────────────────────────── */
+.hero {
+  position: relative;
+  background: var(--navy);
+  overflow: hidden;
+  padding: 0 2rem;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: var(--accent);
+  filter: blur(80px);
+  opacity: 0.18;
+  top: -100px; left: -60px;
+  pointer-events: none;
+}
+.hero-brand {
+  font-family: 'DM Serif Display', Georgia, serif;
+  color: var(--accent);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.hero-centre {
+  flex: 1;
+  text-align: center;
+}
+.hero-title {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 400;
+  color: #fff;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.hero-subtitle {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-top: 0.2rem;
+}
+.hero-trust {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  margin-top: 0.2rem;
+  display: none; /* shown only ≥1024px via media query below */
+}
+
+/* ── Theme toggle ──────────────────────────────────────────── */
+.theme-toggle {
+  background: transparent;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: border-color var(--ease), color var(--ease);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle svg { width: 18px; height: 18px; display: block; }
+.icon-sun, .icon-moon { transition: opacity var(--ease); }
+
+/* ── Page body layout ──────────────────────────────────────── */
+.page-body {
+  display: block; /* single column default; two-column at ≥1024px */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem;
+  gap: 2rem;
+}
+
+/* ── Card ──────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 2rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 24px rgba(0,0,0,0.04);
+  transition: border-color var(--ease);
+}
+.card-title {
+  font-family: 'DM Serif Display', Georgia, serif;
+  color: var(--text);
+  font-size: 1.375rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.25rem;
+}
+.card-hint {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin-bottom: 1.75rem;
+}
+
+/* ── Form grid ─────────────────────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.field-full { grid-column: 1 / -1; }
+
+.field label {
+  display: block;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+
+/* ── Text inputs & selects ─────────────────────────────────── */
+.text-input {
+  background: var(--input-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-input);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 0.65rem 0.9rem;
+  width: 100%;
+  min-height: 44px;
+  outline: none;
+  transition: border-color var(--ease), box-shadow var(--ease);
+  -webkit-appearance: none;
+}
+.text-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(224,82,6,0.15);
+}
+select.text-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23E05206' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  padding-right: 2.2rem;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+/* ── Pill group ────────────────────────────────────────────── */
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pill-radio { display: none; }
+.pill-label {
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+  transition: all var(--ease);
+  user-select: none;
+}
+.pill-label:hover { border-color: var(--accent); color: var(--accent); }
+.pill-radio:checked + .pill-label {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ── Typeahead ─────────────────────────────────────────────── */
+.typeahead-wrap { position: relative; }
+.typeahead-drop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+.typeahead-drop.open { display: block; }
+.drop-item {
+  padding: 0.6rem 0.9rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: background var(--ease), color var(--ease);
+  border-radius: 6px;
+}
+.drop-item:hover,
+.drop-item.focused { background: rgba(224,82,6,0.08); color: var(--accent); }
+
+/* ── More details toggle ───────────────────────────────────── */
+.details-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.25rem 0;
+  margin-bottom: 1rem;
+}
+.details-toggle svg {
+  width: 16px; height: 16px;
+  transition: transform 250ms ease-out;
+  flex-shrink: 0;
+}
+.details-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+.details-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 180ms ease-in; /* collapse: faster, ease-in */
+}
+.details-content.open {
+  max-height: 400px;
+  transition: max-height 250ms ease-out; /* expand */
+}
+
+/* ── Sliders ───────────────────────────────────────────────── */
+.slider-field { display: flex; flex-direction: column; gap: 0.4rem; }
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--dim);
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+  /* background set dynamically via JS fill */
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.slider-val {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── Submit button ─────────────────────────────────────────── */
+.btn-primary {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r-input);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  min-height: 48px;
+  padding: 0.85rem 2rem;
+  width: 100%;
+  transition: background var(--ease), box-shadow var(--ease), transform 100ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-primary:hover {
+  background: var(--accent-hi);
+  box-shadow: 0 4px 20px rgba(224,82,6,0.35);
+}
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+/* CSS spinner */
+.btn-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+  display: none;
+  flex-shrink: 0;
+}
+.btn-primary.loading .btn-spinner { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Recommender toggle link ───────────────────────────────── */
+.rec-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  padding: 0.75rem 0 0;
+  text-align: left;
+  transition: color var(--ease);
+}
+.rec-toggle:hover { color: var(--accent); }
+.rec-toggle svg { width: 14px; height: 14px; flex-shrink: 0; transition: transform 300ms ease-out; }
+.rec-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+.rec-section {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 220ms ease-in; /* collapse: faster, ease-in */
+}
+.rec-section.open {
+  max-height: 500px;
+  transition: max-height 300ms ease-out; /* expand */
+}
+.rec-section-inner {
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+  padding-top: 1.25rem;
+}
+.rec-section-inner .card-title { font-size: 1.1rem; margin-bottom: 0.2rem; }
+.rec-section-inner .card-hint { margin-bottom: 1.25rem; }
+
+/* ── Result panel ──────────────────────────────────────────── */
+.result-panel {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 2rem;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: border-color 150ms ease-out;
+}
+.result-panel.has-result {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(224,82,6,0.06);
+  justify-content: flex-start;
+}
+
+/* Empty state */
+.result-empty { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.result-empty svg { width: 48px; height: 48px; color: var(--dim); }
+.result-empty-title {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+.result-empty-hint { color: var(--muted); font-size: 0.85rem; }
+.result-panel.has-result .result-empty { display: none; }
+
+/* Result content */
+.result-content { display: none; width: 100%; }
+.result-panel.has-result .result-content { display: block; }
+
+.result-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.result-price {
+  font-family: 'DM Serif Display', Georgia, serif;
+  color: var(--accent);
+  font-size: 2.5rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  margin-bottom: 0.4rem;
+}
+.result-town {
+  font-family: 'DM Serif Display', Georgia, serif;
+  color: var(--accent);
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.2;
+  margin-bottom: 0.3rem;
+}
+.result-range { color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem; }
+.result-town-desc { color: var(--muted); font-size: 0.875rem; margin-bottom: 1rem; }
+
+/* Chips */
+.result-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  min-height: 1.5rem;
+}
+.chip {
+  background: rgba(224,82,6,0.08);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.chip-muted {
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  padding: 0.25rem 0;
+  font-style: italic;
+}
+
+/* Reassurance + CTA */
+.result-reassurance {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-bottom: 1.25rem;
+}
+.result-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0 0 1rem;
+}
+.result-cta-label {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+.result-cta-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.4rem 1.1rem;
+  transition: border-color var(--ease), color var(--ease);
+}
+.result-cta-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Fade-in animation classes (JS-added) */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.fade-in { animation: fadeUp 200ms ease-out both; }
+
+/* ── Footer ────────────────────────────────────────────────── */
+.footer {
+  text-align: center;
+  padding: 1.5rem 1.25rem;
+  color: var(--dim);
+  font-size: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .hero-trust { display: block; }
+
+  .page-body {
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    align-items: start;
+  }
+
+  .result-col {
+    position: sticky;
+    top: 2rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero { height: auto; padding: 1rem 1.25rem; }
+  .hero-brand { display: none; } /* hide brand wordmark on mobile to save space */
+  .form-grid { grid-template-columns: 1fr; }
+  .card { padding: 1.25rem; }
+  .result-price { font-size: 2rem; }
+  .result-town  { font-size: 1.5rem; }
+
+  input[type="range"]::-webkit-slider-thumb { width: 24px; height: 24px; }
+  input[type="range"]::-moz-range-thumb     { width: 24px; height: 24px; }
+  input[type="range"] { height: 6px; }
+}
+
+/* ── Reduced motion ────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .result-panel,
+  .result-price,
+  .result-range,
+  .result-chips,
+  .result-reassurance,
+  .result-divider,
+  .result-cta-label,
+  .result-cta-btn,
+  .details-content,
+  .rec-section,
+  .btn-spinner,
+  .fade-in {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+```
+
+- [ ] **Step 2: Save the file and verify it loads without errors by opening the Flask app in a browser**
+
+---
+
+### Task 4: Commit CSS
+
+- [ ] **Step 1: Commit**
+```bash
+git add app/static/style.css
+git commit -m "feat: full CSS redesign — two-column layout, DM Serif Display, result panel, animations"
+```
+
+---
+
+## Chunk 3: HTML + JS Rewrite
+
+### Task 5: Rewrite `index.html` — structure, hero, fonts
+
+**Files:**
+- Rewrite: `app/templates/index.html`
+
+- [ ] **Step 1: Replace the entire contents of `app/templates/index.html` with the following**
+
+```html
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -463,9 +1287,9 @@
   })();
 
   // ── Result panel helpers ──────────────────────────────────────
-  const panel         = document.getElementById('resultPanel');
+  const panel       = document.getElementById('resultPanel');
   const resultContent = document.getElementById('resultContent');
-  const resultEmpty   = document.getElementById('resultEmpty');
+  const resultEmpty = document.getElementById('resultEmpty');
 
   function showResult() {
     panel.classList.add('has-result');
@@ -516,7 +1340,7 @@
     const labelEl       = document.getElementById('resultLabel');
 
     // Reset visibility
-    labelEl.textContent      = 'Estimated Resale Price';
+    labelEl.textContent = 'Estimated Resale Price';
     priceEl.style.display    = '';
     townEl.style.display     = 'none';
     rangeEl.style.display    = '';
@@ -699,3 +1523,80 @@
 
 </body>
 </html>
+```
+
+- [ ] **Step 2: Save the file**
+
+- [ ] **Step 2b: Verify the page loads without errors before testing interactions**
+
+Start the Flask app: `python app/app.py`
+Open `http://127.0.0.1:5000/` and check:
+- Page loads without a 500 error
+- Browser console shows no JS exceptions
+- Hero bar is visible with navy background
+- Form card is visible with pill selector and town input
+
+Fix any syntax errors before continuing to Step 3.
+
+- [ ] **Step 3: Start the Flask app and verify interactions**
+```bash
+python app/app.py
+```
+Open `http://127.0.0.1:5000/` and check:
+- Hero bar renders correctly with navy background and orange glow
+- Two-column layout on desktop (≥1024px)
+- Single column on tablet/mobile (resize browser)
+- "More details" toggle expands/collapses the secondary inputs
+- "Not sure which town?" toggle expands/collapses the Recommender form
+- Theme toggle switches between light and dark (no emoji — SVG icons)
+- Town typeahead filters and supports arrow key navigation
+- Sliders show filled track (orange left of thumb, grey right)
+- Submit button shows spinner and "Estimating…" during fetch (if models loaded)
+- Result panel updates in place — no page reload
+- Price counts up from 0 on result
+- Chips, reassurance line, and CTA fade in sequentially after price
+
+- [ ] **Step 4: Commit**
+```bash
+git add app/templates/index.html
+git commit -m "feat: full HTML/JS redesign — two-column layout, async fetch, sequenced result animation"
+```
+
+---
+
+## Chunk 4: Final verification
+
+### Task 6: Cross-browser and responsive check
+
+- [ ] **Step 1: Test at 375px width (mobile)**
+  - Form grid is single column
+  - Hero is compact
+  - After submit, page scrolls to result panel
+
+- [ ] **Step 2: Test at 768px width (tablet)**
+  - Single column layout
+  - Result panel below form (not sticky)
+
+- [ ] **Step 3: Test at 1200px width (desktop)**
+  - Two-column layout visible
+  - Result panel is sticky (stays in view when scrolling the form)
+
+- [ ] **Step 4: Test dark mode**
+  - Click theme toggle: colours swap correctly
+  - Refresh page: dark mode persists (localStorage)
+  - Test in a browser with OS dark mode set: page loads in dark mode without localStorage entry
+
+- [ ] **Step 5: Test keyboard navigation**
+  - Tab to town input, type partial name, use ArrowDown/ArrowUp to navigate, Enter to select
+  - Tab to "More details" button, press Enter — section expands
+  - Tab to "Not sure which town?" button, press Enter — Recommender section expands
+
+- [ ] **Step 6: Test with models not loaded**
+  - If `app/models/` is empty, submit the estimator
+  - Expected: result panel shows `—` price with the model-not-loaded note (returned from JSON endpoint)
+
+- [ ] **Step 7: Final commit**
+```bash
+git add .
+git commit -m "chore: verified redesign — cross-browser, responsive, keyboard nav, dark mode"
+```
