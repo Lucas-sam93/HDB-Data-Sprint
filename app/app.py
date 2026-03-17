@@ -1,5 +1,6 @@
 import json
 import datetime
+import warnings
 import numpy as np
 from pathlib import Path
 
@@ -49,10 +50,19 @@ _MODEL_DIR = _HERE / "models"
 # Load classification model artefacts at startup
 # ---------------------------------------------------------------------------
 try:
-    _rf_clf      = joblib.load(_MODEL_DIR / "rf_classifier.joblib")
-    _clf_scaler  = joblib.load(_MODEL_DIR / "scaler_classifier.joblib")
-    with open(_MODEL_DIR / "town_classes.json") as _f:
-        _TOWN_CLASSES = json.load(_f)
+    _lgbm_clf   = joblib.load(_MODEL_DIR / "lgbm_classifier.joblib")
+    _clf_scaler = joblib.load(_MODEL_DIR / "scaler_classifier.joblib")
+    with open(_MODEL_DIR / "cluster_labels.json") as _f:
+        _CLUSTER_LABELS = json.load(_f)          # str(cluster_id) → name
+    with open(_MODEL_DIR / "town_cluster_map.json") as _f:
+        _TOWN_CLUSTER_MAP = json.load(_f)        # town → cluster_id
+    with open(_MODEL_DIR / "classifier_feature_columns.json") as _f:
+        _CLF_FEATURE_COLS = json.load(_f)        # ordered feature list
+    # Reverse map: cluster_id (str) → sorted list of towns
+    _CLUSTER_TOWNS: dict = {}
+    for _town, _cid in _TOWN_CLUSTER_MAP.items():
+        _CLUSTER_TOWNS.setdefault(str(_cid), []).append(_town)
+    _CLUSTER_TOWNS = {k: sorted(v) for k, v in _CLUSTER_TOWNS.items()}
     _clf_ready = True
 except FileNotFoundError:
     _clf_ready = False
@@ -244,70 +254,65 @@ def predict():
 @app.route("/recommend", methods=["POST"])
 def recommend():
     if not _clf_ready:
-        msg = "Model not loaded — run the export cell in the classification notebook first."
+        msg = "Model not loaded — run the export cell in recommender_kmeans.ipynb first."
         if request.headers.get("Accept") == "application/json":
-            return jsonify({"rec_town": "—", "rec_desc": "", "error": msg})
+            return jsonify({"rec_cluster": "—", "rec_towns": [], "error": msg})
         return render_template("index.html", active_tab="recommender", recommendation=msg)
 
+    pred_cluster_name = None
+    rec_towns = []
     try:
-        # ── 1. Read the 7 user-supplied form values ──────────────────────
-        resale_price    = float(request.form.get("resale_price")    or 500000)
-        floor_area_sqm  = float(request.form.get("floor_area_sqm")  or 93)
-        cbd_distance_km = float(request.form.get("cbd_distance_km") or 10)
-        max_floor_lvl   = float(request.form.get("max_floor_lvl")   or 15)
-        storey_ratio    = float(request.form.get("storey_ratio")    or 0.5)
-        hdb_age         = float(request.form.get("hdb_age")         or 20)
+        # ── 1. Read form inputs ───────────────────────────────────────────
+        resale_price   = float(request.form.get("resale_price")    or 500000)
+        floor_area_sqm = float(request.form.get("floor_area_sqm")  or 93)
+        hdb_age        = float(request.form.get("hdb_age")         or 20)
+        distance_cbd   = float(request.form.get("cbd_distance_km") or 12)
+        max_floor_lvl  = float(request.form.get("max_floor_lvl")   or 15)
+        storey_ratio   = float(request.form.get("storey_ratio")    or 0.5)
 
-        near_mrt    = 1 if request.form.get("near_mrt")    == "1" else 0
-        near_mall   = 1 if request.form.get("near_mall")   == "1" else 0
-        near_hawker = 1 if request.form.get("near_hawker") == "1" else 0
-        near_school = 1 if request.form.get("near_school") == "1" else 0
+        # ── 2. Map toggles → proxy distances (metres) ────────────────────
+        mrt_dist    = 500.0  if request.form.get("near_mrt")    == "1" else 1500.0
+        hawker_dist = 300.0  if request.form.get("near_hawker") == "1" else 1000.0
+        mall_dist   = 500.0  if request.form.get("near_mall")   == "1" else 1500.0
+        school_dist = 500.0  if request.form.get("near_school") == "1" else 1500.0
 
-        # ── 2. Derive engineered features ────────────────────────────────
-        MAX_CBD_DISTANCE   = 28.6
-        age_location_score = hdb_age * (cbd_distance_km / MAX_CBD_DISTANCE)
-        amenity_cluster    = near_mrt + near_mall + near_hawker + near_school
-        hawker_within_2km  = 3 if near_hawker else 1
-        block_total_units  = 200   # dataset median — unknowable by user
-        block_diversity    = 1.5   # dataset median — unknowable by user
+        # ── 3. Build feature array in exact training order ────────────────
+        feature_map = {
+            "resale_price":             resale_price,
+            "floor_area_sqm":           floor_area_sqm,
+            "hdb_age":                  hdb_age,
+            "distance_from_cbd":        distance_cbd,
+            "mrt_nearest_distance":     mrt_dist,
+            "Hawker_Nearest_Distance":  hawker_dist,
+            "Mall_Nearest_Distance":    mall_dist,
+            "pri_sch_nearest_distance": school_dist,
+            "max_floor_lvl":            max_floor_lvl,
+            "storey_ratio":             storey_ratio,
+        }
+        features = np.array([[feature_map[col] for col in _CLF_FEATURE_COLS]])
 
-        # ── 3. Build 9-feature array in exact training order ─────────────
-        # Order: max_floor_lvl, Hawker_Within_2km, floor_area_sqm, resale_price,
-        #        age_location_score, block_total_units, storey_ratio,
-        #        amenity_cluster, block_diversity
-        features = np.array([[
-            max_floor_lvl,
-            hawker_within_2km,
-            floor_area_sqm,
-            resale_price,
-            age_location_score,
-            block_total_units,
-            storey_ratio,
-            amenity_cluster,
-            block_diversity,
-        ]])
-
-        pred_idx  = _rf_clf.predict(features)[0]
-        print(f"[DEBUG] features: {features}")
-        print(f"[DEBUG] pred_idx={pred_idx}  pred_town={_TOWN_CLASSES[pred_idx]}")
-        pred_town = _TOWN_CLASSES[pred_idx]
-        result    = f"Recommended Town: {pred_town}"
+        # ── 4. Scale → predict cluster ────────────────────────────────────
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            features_scaled  = _clf_scaler.transform(features)
+            pred_cluster_idx = int(_lgbm_clf.predict(features_scaled)[0])
+        pred_cluster_name = _CLUSTER_LABELS[str(pred_cluster_idx)]
+        rec_towns         = _CLUSTER_TOWNS.get(str(pred_cluster_idx), [])
+        result = f"Recommended cluster: {pred_cluster_name}"
     except Exception as e:
-        pred_town = None
         result = f"Error: {e}"
 
-    rec_desc = _TOWN_DESCRIPTIONS.get(pred_town, "") if pred_town else ""
     if request.headers.get("Accept") == "application/json":
         return jsonify({
-            "rec_town": pred_town or "—",
-            "rec_desc": rec_desc,
+            "rec_cluster": pred_cluster_name or "—",
+            "rec_towns":   rec_towns,
         })
     return render_template(
         "index.html",
         active_tab="recommender",
         recommendation=result,
-        rec_town=pred_town or "—",
-        rec_desc=rec_desc,
+        rec_cluster=pred_cluster_name or "—",
+        rec_towns=rec_towns,
     )
 
 

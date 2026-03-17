@@ -880,27 +880,35 @@
     const ctaBtn        = document.getElementById('resultCtaBtn');
     const labelEl       = document.getElementById('resultLabel');
 
-    labelEl.textContent      = 'Recommended Town';
+    labelEl.textContent      = 'Recommended Neighbourhood Type';
     priceEl.style.display    = 'none';
     rangeEl.style.display    = 'none';
+    townDescEl.style.display = 'none';
     townEl.style.display     = '';
-    townDescEl.style.display = '';
 
     panel.style.borderColor = 'var(--accent)';
 
     setTimeout(() => {
-      townEl.textContent     = data.rec_town || '\u2014';
-      townDescEl.textContent = data.rec_desc || '';
+      townEl.textContent = data.rec_cluster || '\u2014';
       fadeInEl(townEl, 0);
     }, 100);
 
     setTimeout(() => {
       chipsEl.innerHTML = '';
-      fadeInEl(townDescEl, 0);
+      if (data.rec_towns && data.rec_towns.length) {
+        const toTitle = s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        data.rec_towns.forEach(town => {
+          const chip = document.createElement('span');
+          chip.className   = 'chip';
+          chip.textContent = toTitle(town);
+          chipsEl.appendChild(chip);
+        });
+        fadeInEl(chipsEl, 0);
+      }
     }, 300);
 
     setTimeout(() => {
-      reassuranceEl.textContent = 'Estimate based on real Singapore HDB resale data';
+      reassuranceEl.textContent = 'Matched from real Singapore HDB resale data';
       fadeInEl(reassuranceEl, 0);
     }, 500);
 

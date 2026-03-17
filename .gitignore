@@ -1,6 +1,12 @@
 CLAUDE.md
 .superpowers/
 
+# Solo working branch — recommender rewrite (do not commit)
+notebooks/recommender_kmeans.ipynb
+app/models/cluster_labels.json
+app/models/town_cluster_map.json
+app/models/classifier_feature_columns.json
+
 # Model artefacts — too large for GitHub (>100 MB limit)
 app/models/*.joblib
 app/models/*.pkl
