@@ -78,6 +78,15 @@ try:
 except FileNotFoundError:
     _reg_ready = False
 
+# ---------------------------------------------------------------------------
+# Load LightGBM regression model (optional — falls back to XGBoost if missing)
+# ---------------------------------------------------------------------------
+try:
+    _lgbm_reg   = joblib.load(_MODEL_DIR / "lgbm_regressor.joblib")
+    _lgbm_ready = True
+except FileNotFoundError:
+    _lgbm_ready = False
+
 
 @app.route("/")
 def index():
@@ -97,9 +106,10 @@ def predict():
         floor_area = float(request.form.get("floor_area_sqm") or _FEATURE_MEDIANS.get("floor_area_sqm", 90))
         mid_storey = float(request.form.get("storey") or _FEATURE_MEDIANS.get("mid_storey", 8))
         hdb_age    = float(request.form.get("hdb_age") or 0)
-        flat_type  = request.form.get("flat_type", "")
-        flat_model = request.form.get("flat_model", "")
-        town       = request.form.get("town", "")
+        flat_type    = request.form.get("flat_type", "")
+        flat_model   = request.form.get("flat_model", "")
+        town         = request.form.get("town", "")
+        model_choice = request.form.get("model", "xgb")
 
         current_year = datetime.datetime.now().year
 
@@ -143,8 +153,11 @@ def predict():
             if "is_dbss" in row:
                 row["is_dbss"] = 1.0 if "DBSS" in flat_model.upper() else 0.0
 
-        features   = np.array([[row[col] for col in _FEATURE_COLS]])
-        prediction = _xgb_reg.predict(features)[0]
+        features = np.array([[row[col] for col in _FEATURE_COLS]])
+        if model_choice == "lgbm" and _lgbm_ready:
+            prediction = _lgbm_reg.predict(features)[0]
+        else:
+            prediction = _xgb_reg.predict(features)[0]
 
         price_str      = f"${prediction:,.0f}"
         price_low_str  = f"${prediction * 0.90:,.0f}"
@@ -163,6 +176,7 @@ def predict():
         price_str = price_low_str = price_high_str = "—"
         used_inputs = []
         note = f"Error: {e}"
+        model_choice = request.form.get("model", "xgb")
 
     if request.headers.get("Accept") == "application/json":
         return jsonify({
@@ -172,6 +186,7 @@ def predict():
             "price_high": price_high_str,
             "used_inputs": used_inputs,
             "price_note": note,
+            "model_choice": model_choice,
         })
     return render_template(
         "index.html",
@@ -182,6 +197,7 @@ def predict():
         price_high=price_high_str,
         used_inputs=used_inputs,
         price_note=note,
+        model_choice=model_choice,
     )
 
 
