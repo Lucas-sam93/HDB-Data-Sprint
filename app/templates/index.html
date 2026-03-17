@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=7" />
 </head>
 <body>
 
@@ -298,20 +298,7 @@
           </div>
         </div><!-- /details-content -->
 
-        <!-- Model selector -->
-        <div class="field field-full">
-          <label>Model</label>
-          <div class="pill-group" role="group" aria-label="Prediction model">
-            <input type="radio" name="model" id="model_xgb" value="xgb" class="pill-radio"
-              {% if model_choice != 'lgbm' %}checked{% endif %}>
-            <label for="model_xgb" class="pill-label">XGBoost</label>
-            <input type="radio" name="model" id="model_lgbm" value="lgbm" class="pill-radio"
-              {% if model_choice == 'lgbm' %}checked{% endif %}>
-            <label for="model_lgbm" class="pill-label">LightGBM</label>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-primary" id="estimatorBtn">
+<button type="submit" class="btn-primary" id="estimatorBtn">
           <span class="btn-spinner" aria-hidden="true"></span>
           <span class="btn-label">Estimate Price &rarr;</span>
         </button>

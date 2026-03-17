@@ -61,7 +61,7 @@ except FileNotFoundError:
 # Load regression model artefacts at startup
 # ---------------------------------------------------------------------------
 try:
-    _xgb_reg = joblib.load(_MODEL_DIR / "xgb_regressor.joblib")
+    _lgbm_reg = joblib.load(_MODEL_DIR / "lgbm_regressor.joblib")
     with open(_MODEL_DIR / "feature_columns.json") as _f:
         _FEATURE_COLS = json.load(_f)
     with open(_MODEL_DIR / "feature_medians.json") as _f:
@@ -77,15 +77,6 @@ try:
     _reg_ready = True
 except FileNotFoundError:
     _reg_ready = False
-
-# ---------------------------------------------------------------------------
-# Load LightGBM regression model (optional — falls back to XGBoost if missing)
-# ---------------------------------------------------------------------------
-try:
-    _lgbm_reg   = joblib.load(_MODEL_DIR / "lgbm_regressor.joblib")
-    _lgbm_ready = True
-except FileNotFoundError:
-    _lgbm_ready = False
 
 
 @app.route("/")
@@ -157,10 +148,9 @@ def predict():
         _pm          = 2.0 if pri_branded else (1.5 if pri_affil else 1.0)
         _live_pri    = (_dw * _pm - 1.0) / 19.0
         liveability  = 0.25*_live_mrt + 0.20*_live_pri + 0.20*_live_sec + 0.20*_live_mall + 0.15*_live_hawker
-        flat_type    = request.form.get("flat_type", "")
-        flat_model   = request.form.get("flat_model", "")
-        town         = request.form.get("town", "")
-        model_choice = request.form.get("model", "xgb")
+        flat_type  = request.form.get("flat_type", "")
+        flat_model = request.form.get("flat_model", "")
+        town       = request.form.get("town", "")
 
         current_year = datetime.datetime.now().year
 
@@ -204,10 +194,7 @@ def predict():
                 row["is_dbss"] = 1.0 if "DBSS" in flat_model.upper() else 0.0
 
         features = np.array([[row[col] for col in _FEATURE_COLS]])
-        if model_choice == "lgbm" and _lgbm_ready:
-            prediction = _lgbm_reg.predict(features)[0]
-        else:
-            prediction = _xgb_reg.predict(features)[0]
+        prediction = _lgbm_reg.predict(features)[0]
 
         price_str      = f"${prediction:,.0f}"
         price_low_str  = f"${prediction * 0.90:,.0f}"
@@ -232,7 +219,6 @@ def predict():
         price_str = price_low_str = price_high_str = "—"
         used_inputs = []
         note = f"Error: {e}"
-        model_choice = request.form.get("model", "xgb")
 
     if request.headers.get("Accept") == "application/json":
         return jsonify({
@@ -242,7 +228,6 @@ def predict():
             "price_high": price_high_str,
             "used_inputs": used_inputs,
             "price_note": note,
-            "model_choice": model_choice,
         })
     return render_template(
         "index.html",
@@ -253,7 +238,6 @@ def predict():
         price_high=price_high_str,
         used_inputs=used_inputs,
         price_note=note,
-        model_choice=model_choice,
     )
 
 
