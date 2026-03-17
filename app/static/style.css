@@ -443,7 +443,7 @@ input[type="range"]::-moz-range-thumb {
   transition: max-height 220ms ease-in; /* collapse: faster, ease-in */
 }
 .rec-section.open {
-  max-height: 500px;
+  max-height: 1200px;
   transition: max-height 300ms ease-out; /* expand */
 }
 .rec-section-inner {
@@ -755,3 +755,6 @@ input[type="range"]::-moz-range-thumb {
     transition: none !important;
   }
 }
+
+/* ── Pill sub-label (small descriptive text inside pill) ─────── */
+.pill-sub { font-size: 0.70rem; opacity: 0.65; }

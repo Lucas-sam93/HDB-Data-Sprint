@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=7" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=8" />
 </head>
 <body>
 
@@ -325,44 +325,117 @@
           <form class="card" id="recommenderForm" action="/recommend" method="POST" novalidate
             style="border:none;padding:0;box-shadow:none;background:transparent;">
             <h2 class="card-title">Find Your Ideal Town</h2>
-            <p class="card-hint">Enter your preferences and we&rsquo;ll recommend the best neighbourhood.</p>
+            <p class="card-hint">Tell us your preferences &mdash; we&rsquo;ll match you to the best neighbourhood.</p>
 
             <div class="form-grid">
 
-              <!-- MRT Distance: slider -->
-              <div class="field slider-field">
-                <label for="rec_mrt">MRT Distance</label>
-                <input type="range" name="mrt_distance" id="rec_mrt"
-                  min="100" max="2000" step="50" value="500" />
-                <div class="slider-labels">
-                  <span>Nearby &lt;500m</span><span>~1 km</span><span>Far &gt;2 km</span>
+              <!-- Budget → resale_price -->
+              <div class="field field-full">
+                <label>Budget</label>
+                <div class="pill-group" role="group" aria-label="Budget">
+                  <input type="radio" name="resale_price" id="rec_budget_400" value="350000" class="pill-radio">
+                  <label for="rec_budget_400" class="pill-label">&le;$400k</label>
+                  <input type="radio" name="resale_price" id="rec_budget_600" value="500000" class="pill-radio" checked>
+                  <label for="rec_budget_600" class="pill-label">$400&ndash;600k</label>
+                  <input type="radio" name="resale_price" id="rec_budget_800" value="700000" class="pill-radio">
+                  <label for="rec_budget_800" class="pill-label">$600&ndash;800k</label>
+                  <input type="radio" name="resale_price" id="rec_budget_800p" value="950000" class="pill-radio">
+                  <label for="rec_budget_800p" class="pill-label">$800k+</label>
                 </div>
-                <div class="slider-val" id="rec_mrt_val">500 m</div>
               </div>
 
-              <!-- Hawker Distance: slider -->
-              <div class="field slider-field">
-                <label for="hawker_distance">Hawker Centre Distance</label>
-                <input type="range" name="hawker_distance" id="hawker_distance"
-                  min="50" max="1500" step="50" value="300" />
-                <div class="slider-labels">
-                  <span>Nearby &lt;300m</span><span>~700m</span><span>Far &gt;1.5 km</span>
+              <!-- Flat size → floor_area_sqm -->
+              <div class="field field-full">
+                <label>Flat Size</label>
+                <div class="pill-group" role="group" aria-label="Flat size">
+                  <input type="radio" name="floor_area_sqm" id="rec_size_2r" value="45" class="pill-radio">
+                  <label for="rec_size_2r" class="pill-label">2-Room <span class="pill-sub">45m&sup2;</span></label>
+                  <input type="radio" name="floor_area_sqm" id="rec_size_3r" value="68" class="pill-radio">
+                  <label for="rec_size_3r" class="pill-label">3-Room <span class="pill-sub">68m&sup2;</span></label>
+                  <input type="radio" name="floor_area_sqm" id="rec_size_4r" value="93" class="pill-radio" checked>
+                  <label for="rec_size_4r" class="pill-label">4-Room <span class="pill-sub">93m&sup2;</span></label>
+                  <input type="radio" name="floor_area_sqm" id="rec_size_5r" value="113" class="pill-radio">
+                  <label for="rec_size_5r" class="pill-label">5-Room <span class="pill-sub">113m&sup2;</span></label>
+                  <input type="radio" name="floor_area_sqm" id="rec_size_ex" value="143" class="pill-radio">
+                  <label for="rec_size_ex" class="pill-label">Executive <span class="pill-sub">143m&sup2;</span></label>
                 </div>
-                <div class="slider-val" id="hawker_val">300 m</div>
               </div>
 
-              <!-- HDB Age -->
-              <div class="field">
-                <label for="rec_hdb_age">HDB Age (years)</label>
-                <input class="text-input" type="number" name="hdb_age" id="rec_hdb_age"
-                  placeholder="e.g. 20" min="0" inputmode="numeric" autocomplete="off" />
+              <!-- Location → cbd_distance_km (for age_location_score) -->
+              <div class="field field-full">
+                <label>Location</label>
+                <div class="pill-group" role="group" aria-label="Location zone">
+                  <input type="radio" name="cbd_distance_km" id="rec_loc_central" value="3" class="pill-radio">
+                  <label for="rec_loc_central" class="pill-label">Central</label>
+                  <input type="radio" name="cbd_distance_km" id="rec_loc_fringe" value="10" class="pill-radio" checked>
+                  <label for="rec_loc_fringe" class="pill-label">City Fringe</label>
+                  <input type="radio" name="cbd_distance_km" id="rec_loc_suburban" value="20" class="pill-radio">
+                  <label for="rec_loc_suburban" class="pill-label">Suburban</label>
+                </div>
               </div>
 
-              <!-- Max Floor Level -->
+              <!-- Building height → max_floor_lvl -->
               <div class="field">
-                <label for="max_floor_lvl">Max Floor Level</label>
-                <input class="text-input" type="number" name="max_floor_lvl" id="max_floor_lvl"
-                  placeholder="e.g. 12" min="1" inputmode="numeric" autocomplete="off" />
+                <label>Building Height</label>
+                <div class="pill-group" role="group" aria-label="Building height">
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_low" value="8" class="pill-radio">
+                  <label for="rec_ht_low" class="pill-label">Low-rise</label>
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_mid" value="15" class="pill-radio" checked>
+                  <label for="rec_ht_mid" class="pill-label">Mid-rise</label>
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_high" value="25" class="pill-radio">
+                  <label for="rec_ht_high" class="pill-label">High-rise</label>
+                </div>
+              </div>
+
+              <!-- Floor preference → storey_ratio -->
+              <div class="field">
+                <label>Floor Preference</label>
+                <div class="pill-group" role="group" aria-label="Floor preference">
+                  <input type="radio" name="storey_ratio" id="rec_fl_low" value="0.25" class="pill-radio">
+                  <label for="rec_fl_low" class="pill-label">Low</label>
+                  <input type="radio" name="storey_ratio" id="rec_fl_mid" value="0.5" class="pill-radio" checked>
+                  <label for="rec_fl_mid" class="pill-label">Mid</label>
+                  <input type="radio" name="storey_ratio" id="rec_fl_high" value="0.75" class="pill-radio">
+                  <label for="rec_fl_high" class="pill-label">High</label>
+                </div>
+              </div>
+
+              <!-- Estate age → hdb_age (used in age_location_score) -->
+              <div class="field field-full">
+                <label>Estate Age Preference</label>
+                <div class="pill-group" role="group" aria-label="Estate age">
+                  <input type="radio" name="hdb_age" id="rec_age_new" value="5" class="pill-radio">
+                  <label for="rec_age_new" class="pill-label">New <span class="pill-sub">&lt;10 yrs</span></label>
+                  <input type="radio" name="hdb_age" id="rec_age_recent" value="20" class="pill-radio" checked>
+                  <label for="rec_age_recent" class="pill-label">Recent <span class="pill-sub">10&ndash;30 yrs</span></label>
+                  <input type="radio" name="hdb_age" id="rec_age_estab" value="35" class="pill-radio">
+                  <label for="rec_age_estab" class="pill-label">Established <span class="pill-sub">30&ndash;45 yrs</span></label>
+                  <input type="radio" name="hdb_age" id="rec_age_heritage" value="50" class="pill-radio">
+                  <label for="rec_age_heritage" class="pill-label">Heritage <span class="pill-sub">45+ yrs</span></label>
+                </div>
+              </div>
+
+              <!-- Nearby amenities → amenity_cluster + Hawker_Within_2km -->
+              <div class="field field-full">
+                <label>Nearby Amenities <span class="field-hint">toggle all that matter to you</span></label>
+                <div class="pillar-toggle" role="group" aria-label="Nearby amenities">
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_mrt" value="1">
+                    <span>Near MRT</span>
+                  </label>
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_mall" value="1">
+                    <span>Near Mall</span>
+                  </label>
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_hawker" value="1">
+                    <span>Near Hawker</span>
+                  </label>
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_school" value="1">
+                    <span>Near School</span>
+                  </label>
+                </div>
               </div>
 
             </div>
@@ -560,9 +633,6 @@
     });
   }
 
-  bindSlider('rec_mrt',        'rec_mrt_val');
-  bindSlider('hawker_distance','hawker_val');
-
   // Liveability pillar distance sliders (display value in metres)
   [
     ['liv_mrt_dist',    'liv_mrt_val'],
@@ -672,13 +742,6 @@
       btn.setAttribute('aria-expanded', !expanded);
       section.setAttribute('aria-hidden', expanded);
       section.classList.toggle('open', !expanded);
-      if (!expanded) {
-        // Re-init recommender sliders
-        ['rec_mrt','hawker_distance'].forEach(id => {
-          const s = document.getElementById(id);
-          if (s) updateSliderFill(s);
-        });
-      }
     });
   })();
 

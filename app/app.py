@@ -250,18 +250,44 @@ def recommend():
         return render_template("index.html", active_tab="recommender", recommendation=msg)
 
     try:
-        mrt_dist    = float(request.form.get("mrt_distance") or 0)
-        hawker_dist = float(request.form.get("hawker_distance") or 0)
-        hdb_age     = float(request.form.get("hdb_age") or 0)
-        max_floor   = float(request.form.get("max_floor_lvl") or 1)
+        # ── 1. Read the 7 user-supplied form values ──────────────────────
+        resale_price    = float(request.form.get("resale_price")    or 500000)
+        floor_area_sqm  = float(request.form.get("floor_area_sqm")  or 93)
+        cbd_distance_km = float(request.form.get("cbd_distance_km") or 10)
+        max_floor_lvl   = float(request.form.get("max_floor_lvl")   or 15)
+        storey_ratio    = float(request.form.get("storey_ratio")    or 0.5)
+        hdb_age         = float(request.form.get("hdb_age")         or 20)
 
-        total_distance  = mrt_dist + hawker_dist
-        age_floor_ratio = hdb_age / max(max_floor, 1)
+        near_mrt    = 1 if request.form.get("near_mrt")    == "1" else 0
+        near_mall   = 1 if request.form.get("near_mall")   == "1" else 0
+        near_hawker = 1 if request.form.get("near_hawker") == "1" else 0
+        near_school = 1 if request.form.get("near_school") == "1" else 0
 
-        features = np.array([[hawker_dist, max_floor, mrt_dist,
-                               hdb_age, total_distance, age_floor_ratio]])
+        # ── 2. Derive engineered features ────────────────────────────────
+        MAX_CBD_DISTANCE   = 28.6
+        age_location_score = hdb_age * (cbd_distance_km / MAX_CBD_DISTANCE)
+        amenity_cluster    = near_mrt + near_mall + near_hawker + near_school
+        hawker_within_2km  = 3 if near_hawker else 1
+        block_total_units  = 200   # dataset median — unknowable by user
+        block_diversity    = 1.5   # dataset median — unknowable by user
+
+        # ── 3. Build 9-feature array in exact training order ─────────────
+        # Order: max_floor_lvl, Hawker_Within_2km, floor_area_sqm, resale_price,
+        #        age_location_score, block_total_units, storey_ratio,
+        #        amenity_cluster, block_diversity
+        features = np.array([[
+            max_floor_lvl,
+            hawker_within_2km,
+            floor_area_sqm,
+            resale_price,
+            age_location_score,
+            block_total_units,
+            storey_ratio,
+            amenity_cluster,
+            block_diversity,
+        ]])
+
         features_scaled = _clf_scaler.transform(features)
-
         pred_idx  = _rf_clf.predict(features_scaled)[0]
         pred_town = _TOWN_CLASSES[pred_idx]
         result    = f"Recommended Town: {pred_town}"
