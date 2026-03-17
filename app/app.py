@@ -287,8 +287,7 @@ def recommend():
             block_diversity,
         ]])
 
-        features_scaled = _clf_scaler.transform(features)
-        pred_idx  = _rf_clf.predict(features_scaled)[0]
+        pred_idx  = _rf_clf.predict(features)[0]
         pred_town = _TOWN_CLASSES[pred_idx]
         result    = f"Recommended Town: {pred_town}"
     except Exception as e:
