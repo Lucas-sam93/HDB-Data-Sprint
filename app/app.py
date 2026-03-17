@@ -93,6 +93,30 @@ def index():
     return render_template("index.html", active_tab="estimator")
 
 
+# ---------------------------------------------------------------------------
+# Liveability index — normalisation constants (from dataset describe() stats)
+# and helper functions that replicate EDA_sprint.ipynb build_liveability()
+# ---------------------------------------------------------------------------
+_LIVE_NORM = {
+    "mrt_nearest_distance":    (21.97,   3544.5),
+    "Hawker_Nearest_Distance": (1.87,    4907.0),
+    "hawker_food_stalls":      (0.0,      226.0),
+    "Mall_Nearest_Distance":   (0.0,     5000.0),
+    "Mall_Within_2km":         (0.0,      43.0),
+    "sec_sch_nearest_dist":    (38.91,   3639.0),
+}
+
+def _inv_norm(val, col_min, col_max):
+    """Inverted min-max: closer distance → higher score. Clips to [0, 1]."""
+    return max(0.0, min(1.0, (col_max - float(val)) / (col_max - col_min)))
+
+def _fwd_norm(val, col_min, col_max):
+    """Forward min-max: higher value → higher score. Clips to [0, 1]."""
+    if col_max == col_min:
+        return 0.0
+    return max(0.0, min(1.0, (float(val) - col_min) / (col_max - col_min)))
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     if not _reg_ready:
@@ -103,9 +127,36 @@ def predict():
 
     prediction = 0
     try:
-        floor_area = float(request.form.get("floor_area_sqm") or _FEATURE_MEDIANS.get("floor_area_sqm", 90))
-        mid_storey = float(request.form.get("storey") or _FEATURE_MEDIANS.get("mid_storey", 8))
-        hdb_age    = float(request.form.get("hdb_age") or 0)
+        floor_area      = float(request.form.get("floor_area_sqm") or _FEATURE_MEDIANS.get("floor_area_sqm", 90))
+        mid_storey      = float(request.form.get("storey") or _FEATURE_MEDIANS.get("mid_storey", 8))
+        remaining_lease = float(request.form.get("remaining_lease") or _FEATURE_MEDIANS.get("remaining_lease", 69))
+        cbd_dist        = float(request.form.get("cbd_distance") or _FEATURE_MEDIANS.get("cbd_distance", 12.9))
+        mrt_dist      = float(request.form.get("mrt_distance")    or 625)
+        mrt_inter     = 1.0 if request.form.get("mrt_interchange") == "1" else 0.0
+        hawker_dist   = float(request.form.get("hawker_distance") or 792)
+        hawker_stalls = float(request.form.get("hawker_stalls")   or 43)
+        mall_dist     = float(request.form.get("mall_distance")   or 613)
+        mall_count    = float(request.form.get("mall_within_2km") or 5)
+        sec_dist      = float(request.form.get("sec_distance")    or 459)
+        sec_qual      = 1.0 if request.form.get("sec_quality") == "1" else 0.0
+        pri_dist      = float(request.form.get("pri_distance")    or 361)
+        pri_affil     = request.form.get("pri_school_type") in ("affiliated", "branded")
+        pri_branded   = request.form.get("pri_school_type") == "branded"
+
+        _mrt_prox    = _inv_norm(mrt_dist,      *_LIVE_NORM["mrt_nearest_distance"])
+        _live_mrt    = 0.7 * _mrt_prox + 0.3 * mrt_inter
+        _hawk_prox   = _inv_norm(hawker_dist,   *_LIVE_NORM["Hawker_Nearest_Distance"])
+        _hawk_stalls = _fwd_norm(hawker_stalls, *_LIVE_NORM["hawker_food_stalls"])
+        _live_hawker = 0.6 * _hawk_prox + 0.4 * _hawk_stalls
+        _mall_prox   = _inv_norm(mall_dist,     *_LIVE_NORM["Mall_Nearest_Distance"])
+        _mall_cnt    = _fwd_norm(mall_count,    *_LIVE_NORM["Mall_Within_2km"])
+        _live_mall   = 0.5 * _mall_prox + 0.5 * _mall_cnt
+        _sec_prox    = _inv_norm(sec_dist,      *_LIVE_NORM["sec_sch_nearest_dist"])
+        _live_sec    = 0.5 * _sec_prox + 0.5 * sec_qual
+        _dw          = 10 if pri_dist <= 1000 else (5 if pri_dist <= 2000 else 1)
+        _pm          = 2.0 if pri_branded else (1.5 if pri_affil else 1.0)
+        _live_pri    = (_dw * _pm - 1.0) / 19.0
+        liveability  = 0.25*_live_mrt + 0.20*_live_pri + 0.20*_live_sec + 0.20*_live_mall + 0.15*_live_hawker
         flat_type    = request.form.get("flat_type", "")
         flat_model   = request.form.get("flat_model", "")
         town         = request.form.get("town", "")
@@ -117,15 +168,14 @@ def predict():
         row = {col: _FEATURE_MEDIANS.get(col, 0.0) for col in _FEATURE_COLS}
 
         # --- Numeric features provided directly by the user ---
-        row["floor_area_sqm"] = floor_area
-        row["mid_storey"]     = mid_storey
-        row["Tranc_Year"]     = current_year
-
-        # --- Derived from hdb_age ---
-        if hdb_age and "remaining_lease" in row:
-            row["remaining_lease"] = 99 - hdb_age
-        if hdb_age and "lease_commence_date" in row:
-            row["lease_commence_date"] = current_year - int(hdb_age)
+        row["floor_area_sqm"]  = floor_area
+        row["mid_storey"]      = mid_storey
+        row["Tranc_Year"]      = current_year
+        row["remaining_lease"] = remaining_lease
+        row["cbd_distance"]    = cbd_dist
+        row["liveability_index"] = liveability
+        if "lease_commence_date" in row:
+            row["lease_commence_date"] = current_year - (99 - int(remaining_lease))
 
         # --- Derived from town selection ---
         _mature_estates = {
@@ -165,12 +215,18 @@ def predict():
         note = "Estimate based on available inputs; other features use dataset medians."
 
         used_inputs = []
-        if request.form.get("flat_type"):      used_inputs.append(request.form.get("flat_type").title())
-        if request.form.get("flat_model"):     used_inputs.append(request.form.get("flat_model").title())
-        if request.form.get("town"):           used_inputs.append(request.form.get("town").title())
-        if request.form.get("floor_area_sqm"): used_inputs.append(f"{request.form.get('floor_area_sqm')} sqm")
-        if request.form.get("storey"):         used_inputs.append(f"Storey {request.form.get('storey')}")
-        if request.form.get("hdb_age"):        used_inputs.append(f"{request.form.get('hdb_age')}yr old")
+        if request.form.get("flat_type"):        used_inputs.append(request.form.get("flat_type").title())
+        if request.form.get("flat_model"):       used_inputs.append(request.form.get("flat_model").title())
+        if request.form.get("town"):             used_inputs.append(request.form.get("town").title())
+        if request.form.get("floor_area_sqm"):   used_inputs.append(f"{request.form.get('floor_area_sqm')} sqm")
+        if request.form.get("storey"):           used_inputs.append(f"Storey {request.form.get('storey')}")
+        if request.form.get("remaining_lease"):  used_inputs.append(f"{int(remaining_lease)}yr lease left")
+        if request.form.get("cbd_distance"):     used_inputs.append(f"{cbd_dist:.1f} km to CBD")
+        _any_liv = any(request.form.get(k) for k in (
+            "mrt_distance", "mrt_interchange", "hawker_distance", "hawker_stalls",
+            "mall_distance", "mall_within_2km", "sec_distance", "sec_quality",
+            "pri_distance", "pri_school_type"))
+        if _any_liv: used_inputs.append(f"Liveability {liveability:.2f}")
 
     except Exception as e:
         price_str = price_low_str = price_high_str = "—"
