@@ -36,6 +36,16 @@ _TOWN_DESCRIPTIONS = {
     "YISHUN":          "Non-mature · North",
 }
 
+_REGION_TOWNS: dict = {
+    "Central":    {"BISHAN", "BUKIT MERAH", "BUKIT TIMAH", "CENTRAL AREA",
+                   "GEYLANG", "KALLANG/WHAMPOA", "QUEENSTOWN", "TOA PAYOH"},
+    "East":       {"BEDOK", "MARINE PARADE", "PASIR RIS", "TAMPINES"},
+    "North-East": {"ANG MO KIO", "HOUGANG", "PUNGGOL", "SENGKANG", "SERANGOON"},
+    "West":       {"BUKIT BATOK", "BUKIT PANJANG", "CHOA CHU KANG", "CLEMENTI",
+                   "JURONG EAST", "JURONG WEST"},
+    "North":      {"SEMBAWANG", "WOODLANDS", "YISHUN"},
+}
+
 _HERE = Path(__file__).parent
 
 app = Flask(
@@ -63,6 +73,15 @@ try:
     for _town, _cid in _TOWN_CLUSTER_MAP.items():
         _CLUSTER_TOWNS.setdefault(str(_cid), []).append(_town)
     _CLUSTER_TOWNS = {k: sorted(v) for k, v in _CLUSTER_TOWNS.items()}
+    # Pre-scale town profiles for inference-time similarity scoring
+    with open(_MODEL_DIR / "town_profiles.json") as _f:
+        _raw_profiles = json.load(_f)            # town → {feature: median_value}
+    _TOWN_PROFILE_SCALED: dict = {}
+    for _t, _vals in _raw_profiles.items():
+        _vec = np.array([[_vals[c] for c in _CLF_FEATURE_COLS]])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            _TOWN_PROFILE_SCALED[_t] = _clf_scaler.transform(_vec)[0]
     _clf_ready = True
 except FileNotFoundError:
     _clf_ready = False
@@ -259,7 +278,8 @@ def recommend():
             return jsonify({"rec_cluster": "—", "rec_towns": [], "error": msg})
         return render_template("index.html", active_tab="recommender", recommendation=msg)
 
-    pred_cluster_name = None
+    pred_cluster_name  = None
+    cluster_confidence = 0.0
     rec_towns = []
     try:
         # ── 1. Read form inputs ───────────────────────────────────────────
@@ -268,7 +288,8 @@ def recommend():
         hdb_age        = float(request.form.get("hdb_age")         or 20)
         distance_cbd   = float(request.form.get("cbd_distance_km") or 12)
         max_floor_lvl  = float(request.form.get("max_floor_lvl")   or 15)
-        storey_ratio   = float(request.form.get("storey_ratio")    or 0.5)
+        storey_ratio    = float(request.form.get("storey_ratio")    or 0.5)
+        planning_region = request.form.get("planning_region", "").strip()
 
         # ── 2. Map toggles → proxy distances (metres) ────────────────────
         mrt_dist    = 500.0  if request.form.get("near_mrt")    == "1" else 1500.0
@@ -291,21 +312,61 @@ def recommend():
         }
         features = np.array([[feature_map[col] for col in _CLF_FEATURE_COLS]])
 
-        # ── 4. Scale → predict cluster ────────────────────────────────────
+        # ── 4. Scale → predict cluster + confidence ───────────────────────
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            features_scaled  = _clf_scaler.transform(features)
-            pred_cluster_idx = int(_lgbm_clf.predict(features_scaled)[0])
+            features_scaled    = _clf_scaler.transform(features)
+            proba              = _lgbm_clf.predict_proba(features_scaled)[0]
+        pred_cluster_idx   = int(np.argmax(proba))
+        cluster_confidence = float(proba[pred_cluster_idx])
+
         pred_cluster_name = _CLUSTER_LABELS[str(pred_cluster_idx)]
-        rec_towns         = _CLUSTER_TOWNS.get(str(pred_cluster_idx), [])
+        cluster_towns     = _CLUSTER_TOWNS.get(str(pred_cluster_idx), [])
+
+        # Filter to towns in the user's selected region
+        if planning_region and planning_region in _REGION_TOWNS:
+            region_set   = _REGION_TOWNS[planning_region]
+            region_towns = [t for t in cluster_towns if t in region_set]
+            # Fallback: cluster has no towns in chosen region — score all region towns directly
+            if not region_towns:
+                region_towns = sorted(t for t in region_set if t in _TOWN_PROFILE_SCALED)
+            cluster_towns = region_towns
+
+        # ── 5. Score each town by L2 distance in scaled feature space ────
+        buyer_vec = features_scaled[0]
+        scored = []
+        for town in cluster_towns:
+            profile = _TOWN_PROFILE_SCALED.get(town)
+            if profile is None:
+                scored.append((town, 9999.0))
+                continue
+            dist = float(np.linalg.norm(buyer_vec - profile))
+            scored.append((town, dist))
+
+        if scored:
+            raw        = np.array([s[1] for s in scored])
+            exp_scores = np.exp(-raw)                        # closer → higher
+            norm_scores = exp_scores / exp_scores.max()     # best town = 1.0
+            final      = [round(float(s) * cluster_confidence * 100)
+                          for s in norm_scores]
+            rec_towns  = [
+                {"name": t, "score": sc}
+                for (t, _), sc in sorted(
+                    zip(scored, final), key=lambda x: x[1], reverse=True
+                )
+            ]
+        else:
+            rec_towns = []
+
         result = f"Recommended cluster: {pred_cluster_name}"
     except Exception as e:
         result = f"Error: {e}"
 
     if request.headers.get("Accept") == "application/json":
         return jsonify({
-            "rec_cluster": pred_cluster_name or "—",
-            "rec_towns":   rec_towns,
+            "rec_cluster":    pred_cluster_name or "—",
+            "rec_confidence": round(cluster_confidence * 100) if pred_cluster_name else 0,
+            "rec_towns":      rec_towns,
         })
     return render_template(
         "index.html",

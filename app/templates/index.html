@@ -331,7 +331,7 @@
 
               <!-- 1. Location → cbd_distance_km (Singapore planning regions) -->
               <div class="field field-full">
-                <label>Location</label>
+                <label>Location <span class="field-hint">how close to the city centre do you want to be?</span></label>
                 <div class="pill-group" role="group" aria-label="Location region">
                   <input type="radio" name="cbd_distance_km" id="rec_loc_central" value="5" class="pill-radio" checked>
                   <label for="rec_loc_central" class="pill-label">Central</label>
@@ -344,6 +344,7 @@
                   <input type="radio" name="cbd_distance_km" id="rec_loc_north" value="23" class="pill-radio">
                   <label for="rec_loc_north" class="pill-label">North</label>
                 </div>
+                <input type="hidden" name="planning_region" id="planning_region_value" value="Central">
               </div>
 
               <!-- 2. Budget → resale_price -->
@@ -361,9 +362,9 @@
                 </div>
               </div>
 
-              <!-- 3. Near Hawker → near_hawker (standalone — #2 model feature at 28%) -->
+              <!-- 3. Near Hawker → near_hawker -->
               <div class="field field-full">
-                <label>Hawker Centre Proximity <span class="field-hint">highest-impact lifestyle signal</span></label>
+                <label>Hawker Centre Proximity <span class="field-hint">strong signal for neighbourhood type</span></label>
                 <div class="pillar-toggle" role="group" aria-label="Near hawker centre">
                   <label class="pillar-toggle-opt">
                     <input type="checkbox" name="near_hawker" value="1">
@@ -377,21 +378,21 @@
                 <label>Flat Size</label>
                 <div class="pill-group" role="group" aria-label="Flat size">
                   <input type="radio" name="floor_area_sqm" id="rec_size_2r" value="45" class="pill-radio">
-                  <label for="rec_size_2r" class="pill-label">2-Room <span class="pill-sub">45m&sup2;</span></label>
+                  <label for="rec_size_2r" class="pill-label">2-Room</label>
                   <input type="radio" name="floor_area_sqm" id="rec_size_3r" value="68" class="pill-radio">
-                  <label for="rec_size_3r" class="pill-label">3-Room <span class="pill-sub">68m&sup2;</span></label>
+                  <label for="rec_size_3r" class="pill-label">3-Room</label>
                   <input type="radio" name="floor_area_sqm" id="rec_size_4r" value="93" class="pill-radio" checked>
-                  <label for="rec_size_4r" class="pill-label">4-Room <span class="pill-sub">93m&sup2;</span></label>
+                  <label for="rec_size_4r" class="pill-label">4-Room</label>
                   <input type="radio" name="floor_area_sqm" id="rec_size_5r" value="113" class="pill-radio">
-                  <label for="rec_size_5r" class="pill-label">5-Room <span class="pill-sub">113m&sup2;</span></label>
+                  <label for="rec_size_5r" class="pill-label">5-Room</label>
                   <input type="radio" name="floor_area_sqm" id="rec_size_ex" value="143" class="pill-radio">
-                  <label for="rec_size_ex" class="pill-label">Executive <span class="pill-sub">143m&sup2;</span></label>
+                  <label for="rec_size_ex" class="pill-label">Executive</label>
                 </div>
               </div>
 
-              <!-- 5. Estate age → hdb_age (combined with location → age_location_score) -->
+              <!-- 5. Estate age → hdb_age (direct feature in classifier) -->
               <div class="field field-full">
-                <label>Estate Age Preference</label>
+                <label>Estate Age Preference <span class="field-hint">newer estates tend to be further from the city; older ones are more central</span></label>
                 <div class="pill-group" role="group" aria-label="Estate age">
                   <input type="radio" name="hdb_age" id="rec_age_new" value="5" class="pill-radio">
                   <label for="rec_age_new" class="pill-label">New <span class="pill-sub">&lt;10 yrs</span></label>
@@ -425,7 +426,7 @@
 
               <!-- 7. Building height → max_floor_lvl -->
               <div class="field">
-                <label>Building Height</label>
+                <label>Building Height <span class="field-hint">neighbourhood character</span></label>
                 <div class="pill-group" role="group" aria-label="Building height">
                   <input type="radio" name="max_floor_lvl" id="rec_ht_low" value="8" class="pill-radio">
                   <label for="rec_ht_low" class="pill-label">Low-rise</label>
@@ -438,7 +439,7 @@
 
               <!-- 8. Floor preference → storey_ratio -->
               <div class="field">
-                <label>Floor Preference</label>
+                <label>Floor Preference <span class="field-hint">how high up in the building?</span></label>
                 <div class="pill-group" role="group" aria-label="Floor preference">
                   <input type="radio" name="storey_ratio" id="rec_fl_low" value="0.25" class="pill-radio">
                   <label for="rec_fl_low" class="pill-label">Low</label>
@@ -889,7 +890,8 @@
     panel.style.borderColor = 'var(--accent)';
 
     setTimeout(() => {
-      townEl.textContent = data.rec_cluster || '\u2014';
+      const conf = data.rec_confidence ? ' \u00b7 ' + data.rec_confidence + '% match' : '';
+      townEl.textContent = (data.rec_cluster || '\u2014') + conf;
       fadeInEl(townEl, 0);
     }, 100);
 
@@ -897,10 +899,18 @@
       chipsEl.innerHTML = '';
       if (data.rec_towns && data.rec_towns.length) {
         const toTitle = s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-        data.rec_towns.forEach(town => {
-          const chip = document.createElement('span');
-          chip.className   = 'chip';
-          chip.textContent = toTitle(town);
+        data.rec_towns.forEach(item => {
+          const name  = typeof item === 'string' ? item : item.name;
+          const score = (typeof item === 'object' && item.score != null) ? item.score : null;
+          const chip  = document.createElement('span');
+          chip.className = 'chip';
+          chip.textContent = toTitle(name);
+          if (score !== null) {
+            const badge = document.createElement('span');
+            badge.className   = 'chip-score';
+            badge.textContent = score + '%';
+            chip.appendChild(badge);
+          }
           chipsEl.appendChild(chip);
         });
         fadeInEl(chipsEl, 0);
@@ -969,6 +979,20 @@
     } finally {
       setLoading(btn, false);
     }
+  });
+
+  // ── Sync planning_region hidden input with selected location pill ────────
+  document.querySelectorAll('input[name="cbd_distance_km"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
+      const map = {
+        'rec_loc_central':   'Central',
+        'rec_loc_east':      'East',
+        'rec_loc_northeast': 'North-East',
+        'rec_loc_west':      'West',
+        'rec_loc_north':     'North'
+      };
+      document.getElementById('planning_region_value').value = map[this.id] || 'Central';
+    });
   });
 
   // ── Recommender form submit ───────────────────────────────────
