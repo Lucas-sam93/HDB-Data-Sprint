@@ -66,6 +66,14 @@ try:
         _FEATURE_COLS = json.load(_f)
     with open(_MODEL_DIR / "feature_medians.json") as _f:
         _FEATURE_MEDIANS = json.load(_f)
+    # Label encoder classes (saved by export cell in Regression_Models_Comparison.ipynb)
+    # Maps categorical column name → list of sorted unique class labels (same order as LabelEncoder)
+    _label_classes_path = _MODEL_DIR / "label_classes.json"
+    if _label_classes_path.exists():
+        with open(_label_classes_path) as _f:
+            _LABEL_CLASSES = json.load(_f)
+    else:
+        _LABEL_CLASSES = {}
     _reg_ready = True
 except FileNotFoundError:
     _reg_ready = False
@@ -89,44 +97,51 @@ def predict():
         floor_area = float(request.form.get("floor_area_sqm") or _FEATURE_MEDIANS.get("floor_area_sqm", 90))
         mid_storey = float(request.form.get("storey") or _FEATURE_MEDIANS.get("mid_storey", 8))
         hdb_age    = float(request.form.get("hdb_age") or 0)
-        mrt_dist   = float(request.form.get("mrt_distance") or _FEATURE_MEDIANS.get("mrt_nearest_distance", 500))
-        mall_dist  = float(request.form.get("mall_distance") or _FEATURE_MEDIANS.get("Mall_Nearest_Distance", 500))
         flat_type  = request.form.get("flat_type", "")
+        flat_model = request.form.get("flat_model", "")
         town       = request.form.get("town", "")
 
         current_year = datetime.datetime.now().year
-        lease_year   = current_year - int(hdb_age) if hdb_age else int(_FEATURE_MEDIANS.get("lease_commence_date", 1990))
 
+        # Start with dataset medians as fallback for every feature
         row = {col: _FEATURE_MEDIANS.get(col, 0.0) for col in _FEATURE_COLS}
-        row["floor_area_sqm"]        = floor_area
-        row["mid_storey"]            = mid_storey
-        row["lease_commence_date"]   = lease_year
-        row["mrt_nearest_distance"]  = mrt_dist
-        row["Mall_Nearest_Distance"] = mall_dist
-        row["Tranc_Year"]            = current_year
-        row["Tranc_Month"]           = datetime.datetime.now().month
 
-        if flat_type:
-            col = f"flat_type_{flat_type}"
-            if col in row:
-                for c in _FEATURE_COLS:
-                    if c.startswith("flat_type_"):
-                        row[c] = 0.0
-                row[col] = 1.0
+        # --- Numeric features provided directly by the user ---
+        row["floor_area_sqm"] = floor_area
+        row["mid_storey"]     = mid_storey
+        row["Tranc_Year"]     = current_year
 
-        if town:
-            town_col = f"town_{town}"
-            if town_col in row:
-                for c in _FEATURE_COLS:
-                    if c.startswith("town_"):
-                        row[c] = 0.0
-                row[town_col] = 1.0
-            planning_col = f"planning_area_{town}"
-            if planning_col in row:
-                for c in _FEATURE_COLS:
-                    if c.startswith("planning_area_"):
-                        row[c] = 0.0
-                row[planning_col] = 1.0
+        # --- Derived from hdb_age ---
+        if hdb_age and "remaining_lease" in row:
+            row["remaining_lease"] = 99 - hdb_age
+        if hdb_age and "lease_commence_date" in row:
+            row["lease_commence_date"] = current_year - int(hdb_age)
+
+        # --- Derived from town selection ---
+        _mature_estates = {
+            "ANG MO KIO", "BEDOK", "BISHAN", "BUKIT MERAH", "BUKIT TIMAH",
+            "CENTRAL AREA", "CLEMENTI", "GEYLANG", "KALLANG/WHAMPOA",
+            "MARINE PARADE", "PASIR RIS", "QUEENSTOWN", "SERANGOON",
+            "TAMPINES", "TOA PAYOH",
+        }
+        if town and "mature_estate" in row:
+            row["mature_estate"] = 1.0 if town.upper() in _mature_estates else 0.0
+
+        # --- Label-encoded categoricals (flat_type, flat_model) ---
+        # LabelEncoder assigns the sorted-index of each class label.
+        def _label_encode(col, value):
+            classes = _LABEL_CLASSES.get(col, [])
+            if value and value in classes:
+                return float(classes.index(value))
+            return _FEATURE_MEDIANS.get(col, 0.0)
+
+        if flat_type and "flat_type" in row:
+            row["flat_type"] = _label_encode("flat_type", flat_type)
+        if flat_model and "flat_model" in row:
+            row["flat_model"] = _label_encode("flat_model", flat_model)
+            # Derive DBSS flag from flat_model
+            if "is_dbss" in row:
+                row["is_dbss"] = 1.0 if "DBSS" in flat_model.upper() else 0.0
 
         features   = np.array([[row[col] for col in _FEATURE_COLS]])
         prediction = _xgb_reg.predict(features)[0]
@@ -138,6 +153,7 @@ def predict():
 
         used_inputs = []
         if request.form.get("flat_type"):      used_inputs.append(request.form.get("flat_type").title())
+        if request.form.get("flat_model"):     used_inputs.append(request.form.get("flat_model").title())
         if request.form.get("town"):           used_inputs.append(request.form.get("town").title())
         if request.form.get("floor_area_sqm"): used_inputs.append(f"{request.form.get('floor_area_sqm')} sqm")
         if request.form.get("storey"):         used_inputs.append(f"Storey {request.form.get('storey')}")
