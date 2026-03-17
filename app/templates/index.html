@@ -881,29 +881,24 @@
     const ctaBtn        = document.getElementById('resultCtaBtn');
     const labelEl       = document.getElementById('resultLabel');
 
-    labelEl.textContent      = 'Recommended Neighbourhood Type';
+    labelEl.textContent      = 'Your Best-Match Towns';
     priceEl.style.display    = 'none';
     rangeEl.style.display    = 'none';
     townDescEl.style.display = 'none';
-    townEl.style.display     = '';
+    townEl.style.display     = 'none';
 
     panel.style.borderColor = 'var(--accent)';
-
-    setTimeout(() => {
-      const conf = data.rec_confidence ? ' \u00b7 ' + data.rec_confidence + '% match' : '';
-      townEl.textContent = (data.rec_cluster || '\u2014') + conf;
-      fadeInEl(townEl, 0);
-    }, 100);
 
     setTimeout(() => {
       chipsEl.innerHTML = '';
       if (data.rec_towns && data.rec_towns.length) {
         const toTitle = s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-        data.rec_towns.forEach(item => {
+        data.rec_towns.forEach((item, idx) => {
           const name  = typeof item === 'string' ? item : item.name;
           const score = (typeof item === 'object' && item.score != null) ? item.score : null;
           const chip  = document.createElement('span');
           chip.className = 'chip';
+          chip.style.fontSize = Math.max(0.72, 1.15 - idx * 0.1) + 'em';
           chip.textContent = toTitle(name);
           if (score !== null) {
             const badge = document.createElement('span');

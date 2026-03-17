@@ -323,14 +323,11 @@ def recommend():
         pred_cluster_name = _CLUSTER_LABELS[str(pred_cluster_idx)]
         cluster_towns     = _CLUSTER_TOWNS.get(str(pred_cluster_idx), [])
 
-        # Filter to towns in the user's selected region
+        # Always score every town in the selected region (cluster used only for confidence)
         if planning_region and planning_region in _REGION_TOWNS:
-            region_set   = _REGION_TOWNS[planning_region]
-            region_towns = [t for t in cluster_towns if t in region_set]
-            # Fallback: cluster has no towns in chosen region — score all region towns directly
-            if not region_towns:
-                region_towns = sorted(t for t in region_set if t in _TOWN_PROFILE_SCALED)
-            cluster_towns = region_towns
+            cluster_towns = sorted(
+                t for t in _REGION_TOWNS[planning_region] if t in _TOWN_PROFILE_SCALED
+            )
 
         # ── 5. Score each town by L2 distance in scaled feature space ────
         buyer_vec = features_scaled[0]
