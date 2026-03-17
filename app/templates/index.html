@@ -329,7 +329,24 @@
 
             <div class="form-grid">
 
-              <!-- Budget → resale_price -->
+              <!-- 1. Location → cbd_distance_km (Singapore planning regions) -->
+              <div class="field field-full">
+                <label>Location</label>
+                <div class="pill-group" role="group" aria-label="Location region">
+                  <input type="radio" name="cbd_distance_km" id="rec_loc_central" value="5" class="pill-radio" checked>
+                  <label for="rec_loc_central" class="pill-label">Central</label>
+                  <input type="radio" name="cbd_distance_km" id="rec_loc_east" value="14" class="pill-radio">
+                  <label for="rec_loc_east" class="pill-label">East</label>
+                  <input type="radio" name="cbd_distance_km" id="rec_loc_northeast" value="13" class="pill-radio">
+                  <label for="rec_loc_northeast" class="pill-label">North-East</label>
+                  <input type="radio" name="cbd_distance_km" id="rec_loc_west" value="15" class="pill-radio">
+                  <label for="rec_loc_west" class="pill-label">West</label>
+                  <input type="radio" name="cbd_distance_km" id="rec_loc_north" value="23" class="pill-radio">
+                  <label for="rec_loc_north" class="pill-label">North</label>
+                </div>
+              </div>
+
+              <!-- 2. Budget → resale_price -->
               <div class="field field-full">
                 <label>Budget</label>
                 <div class="pill-group" role="group" aria-label="Budget">
@@ -344,7 +361,18 @@
                 </div>
               </div>
 
-              <!-- Flat size → floor_area_sqm -->
+              <!-- 3. Near Hawker → near_hawker (standalone — #2 model feature at 28%) -->
+              <div class="field field-full">
+                <label>Hawker Centre Proximity <span class="field-hint">highest-impact lifestyle signal</span></label>
+                <div class="pillar-toggle" role="group" aria-label="Near hawker centre">
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_hawker" value="1">
+                    <span>Within 500m of a hawker centre</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 4. Flat size → floor_area_sqm -->
               <div class="field field-full">
                 <label>Flat Size</label>
                 <div class="pill-group" role="group" aria-label="Flat size">
@@ -361,46 +389,7 @@
                 </div>
               </div>
 
-              <!-- Location → cbd_distance_km (for age_location_score) -->
-              <div class="field field-full">
-                <label>Location</label>
-                <div class="pill-group" role="group" aria-label="Location zone">
-                  <input type="radio" name="cbd_distance_km" id="rec_loc_central" value="3" class="pill-radio">
-                  <label for="rec_loc_central" class="pill-label">Central</label>
-                  <input type="radio" name="cbd_distance_km" id="rec_loc_fringe" value="10" class="pill-radio" checked>
-                  <label for="rec_loc_fringe" class="pill-label">City Fringe</label>
-                  <input type="radio" name="cbd_distance_km" id="rec_loc_suburban" value="20" class="pill-radio">
-                  <label for="rec_loc_suburban" class="pill-label">Suburban</label>
-                </div>
-              </div>
-
-              <!-- Building height → max_floor_lvl -->
-              <div class="field">
-                <label>Building Height</label>
-                <div class="pill-group" role="group" aria-label="Building height">
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_low" value="8" class="pill-radio">
-                  <label for="rec_ht_low" class="pill-label">Low-rise</label>
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_mid" value="15" class="pill-radio" checked>
-                  <label for="rec_ht_mid" class="pill-label">Mid-rise</label>
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_high" value="25" class="pill-radio">
-                  <label for="rec_ht_high" class="pill-label">High-rise</label>
-                </div>
-              </div>
-
-              <!-- Floor preference → storey_ratio -->
-              <div class="field">
-                <label>Floor Preference</label>
-                <div class="pill-group" role="group" aria-label="Floor preference">
-                  <input type="radio" name="storey_ratio" id="rec_fl_low" value="0.25" class="pill-radio">
-                  <label for="rec_fl_low" class="pill-label">Low</label>
-                  <input type="radio" name="storey_ratio" id="rec_fl_mid" value="0.5" class="pill-radio" checked>
-                  <label for="rec_fl_mid" class="pill-label">Mid</label>
-                  <input type="radio" name="storey_ratio" id="rec_fl_high" value="0.75" class="pill-radio">
-                  <label for="rec_fl_high" class="pill-label">High</label>
-                </div>
-              </div>
-
-              <!-- Estate age → hdb_age (used in age_location_score) -->
+              <!-- 5. Estate age → hdb_age (combined with location → age_location_score) -->
               <div class="field field-full">
                 <label>Estate Age Preference</label>
                 <div class="pill-group" role="group" aria-label="Estate age">
@@ -415,10 +404,10 @@
                 </div>
               </div>
 
-              <!-- Nearby amenities → amenity_cluster + Hawker_Within_2km -->
+              <!-- 6. Other amenities → near_mrt, near_mall, near_school (hawker separated above) -->
               <div class="field field-full">
-                <label>Nearby Amenities <span class="field-hint">toggle all that matter to you</span></label>
-                <div class="pillar-toggle" role="group" aria-label="Nearby amenities">
+                <label>Other Amenities <span class="field-hint">toggle all that matter to you</span></label>
+                <div class="pillar-toggle" role="group" aria-label="Other amenities">
                   <label class="pillar-toggle-opt">
                     <input type="checkbox" name="near_mrt" value="1">
                     <span>Near MRT</span>
@@ -428,13 +417,35 @@
                     <span>Near Mall</span>
                   </label>
                   <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_hawker" value="1">
-                    <span>Near Hawker</span>
-                  </label>
-                  <label class="pillar-toggle-opt">
                     <input type="checkbox" name="near_school" value="1">
                     <span>Near School</span>
                   </label>
+                </div>
+              </div>
+
+              <!-- 7. Building height → max_floor_lvl -->
+              <div class="field">
+                <label>Building Height</label>
+                <div class="pill-group" role="group" aria-label="Building height">
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_low" value="8" class="pill-radio">
+                  <label for="rec_ht_low" class="pill-label">Low-rise</label>
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_mid" value="15" class="pill-radio" checked>
+                  <label for="rec_ht_mid" class="pill-label">Mid-rise</label>
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_high" value="25" class="pill-radio">
+                  <label for="rec_ht_high" class="pill-label">High-rise</label>
+                </div>
+              </div>
+
+              <!-- 8. Floor preference → storey_ratio -->
+              <div class="field">
+                <label>Floor Preference</label>
+                <div class="pill-group" role="group" aria-label="Floor preference">
+                  <input type="radio" name="storey_ratio" id="rec_fl_low" value="0.25" class="pill-radio">
+                  <label for="rec_fl_low" class="pill-label">Low</label>
+                  <input type="radio" name="storey_ratio" id="rec_fl_mid" value="0.5" class="pill-radio" checked>
+                  <label for="rec_fl_mid" class="pill-label">Mid</label>
+                  <input type="radio" name="storey_ratio" id="rec_fl_high" value="0.75" class="pill-radio">
+                  <label for="rec_fl_high" class="pill-label">High</label>
                 </div>
               </div>
 
