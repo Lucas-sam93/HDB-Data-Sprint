@@ -90,8 +90,9 @@
           <!-- Floor Area -->
           <div class="field">
             <label for="floor_area_sqm">Floor Area (sqm)</label>
-            <input class="text-input" type="number" name="floor_area_sqm" id="floor_area_sqm"
-              placeholder="e.g. 90" min="1" inputmode="numeric" autocomplete="off" />
+            <select class="text-input" name="floor_area_sqm" id="floor_area_sqm" autocomplete="off">
+              <option value="">&#8212; select flat type first &#8212;</option>
+            </select>
           </div>
 
           <!-- Storey -->
@@ -440,6 +441,41 @@
           if (s) updateSliderFill(s);
         });
       }
+    });
+  })();
+
+  // ── Sqm Dropdown (tied to flat type selection) ────────────────
+  (function () {
+    const SQM_BY_TYPE = {
+      '1 ROOM':           [{v:33,l:'33 sqm'},{v:35,l:'35 sqm',d:true},{v:38,l:'38 sqm'}],
+      '2 ROOM':           [{v:45,l:'45 sqm'},{v:47,l:'47 sqm',d:true},{v:52,l:'52 sqm'}],
+      '3 ROOM':           [{v:60,l:'60 sqm'},{v:67,l:'67 sqm',d:true},{v:75,l:'75 sqm'}],
+      '4 ROOM':           [{v:83,l:'83 sqm'},{v:90,l:'90 sqm',d:true},{v:93,l:'93 sqm'},{v:105,l:'105 sqm'}],
+      '5 ROOM':           [{v:110,l:'110 sqm',d:true},{v:121,l:'121 sqm'},{v:133,l:'133 sqm'}],
+      'EXECUTIVE':        [{v:130,l:'130 sqm'},{v:146,l:'146 sqm',d:true},{v:164,l:'164 sqm'}],
+      'MULTI-GENERATION': [{v:115,l:'115 sqm'},{v:135,l:'135 sqm',d:true},{v:149,l:'149 sqm'}],
+    };
+
+    const sel = document.getElementById('floor_area_sqm');
+
+    function populateSqm(flatType) {
+      const sizes = SQM_BY_TYPE[flatType] || [];
+      sel.innerHTML = '';
+      if (!sizes.length) {
+        sel.add(new Option('— select flat type first —', ''));
+        return;
+      }
+      sizes.forEach(function (s) {
+        const opt = new Option(s.l, s.v);
+        if (s.d) opt.selected = true;
+        sel.add(opt);
+      });
+    }
+
+    document.querySelectorAll('input[name="flat_type"]').forEach(function (radio) {
+      radio.addEventListener('change', function () { populateSqm(this.value); });
+      // Restore state if browser remembers a checked radio on reload
+      if (radio.checked) populateSqm(radio.value);
     });
   })();
 
