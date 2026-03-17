@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=4" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6" />
 </head>
 <body>
 
@@ -180,113 +180,121 @@
         <div class="details-content" id="detailsContent" aria-hidden="true">
           <div class="form-grid">
 
-            <!-- Liveability breakdown: 5 pillars -->
-            <p class="section-label" style="grid-column:1/-1">Liveability breakdown</p>
+            <div class="liveability-header">
+              <span class="liveability-title">Liveability breakdown</span>
+              <span class="liveability-hint">Affects 15&ndash;25% of the composite score per pillar</span>
+            </div>
 
-            <!-- MRT (25%) -->
-            <div class="field slider-field" style="grid-column:1/-1">
-              <label>MRT Access <span class="pillar-weight">(25%)</span></label>
-              <div class="pillar-row">
-                <div class="pillar-dist">
-                  <span class="dist-label">Nearest MRT station</span>
+            <div class="pillars-grid">
+
+              <!-- MRT (25%) -->
+              <div class="pillar-card">
+                <div class="pillar-card-hd">
+                  <span class="pillar-name">MRT Access</span>
+                  <span class="pillar-badge">25%</span>
+                </div>
+                <div class="pillar-slider">
                   <input type="range" name="mrt_distance" id="liv_mrt_dist"
                     min="0" max="2500" step="50" value="625" />
-                  <div class="slider-labels"><span>0 m</span><span>1250 m</span><span>2500 m</span></div>
-                  <div class="slider-val" id="liv_mrt_val">625 m</div>
+                  <div class="pillar-slider-footer">
+                    <span class="pillar-slider-hint">0 m</span>
+                    <span class="pillar-slider-val" id="liv_mrt_val">625 m</span>
+                    <span class="pillar-slider-hint">2500 m</span>
+                  </div>
                 </div>
-                <div class="pillar-pills">
-                  <span class="pill-label">Interchange station?</span>
-                  <label class="pill-opt"><input type="radio" name="mrt_interchange" value="0" checked /> No</label>
-                  <label class="pill-opt"><input type="radio" name="mrt_interchange" value="1" /> Yes</label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Hawker (15%) -->
-            <div class="field slider-field" style="grid-column:1/-1">
-              <label>Hawker Centre <span class="pillar-weight">(15%)</span></label>
-              <div class="pillar-row">
-                <div class="pillar-dist">
-                  <span class="dist-label">Nearest hawker centre</span>
-                  <input type="range" name="hawker_distance" id="liv_hawker_dist"
-                    min="0" max="3000" step="50" value="792" />
-                  <div class="slider-labels"><span>0 m</span><span>1500 m</span><span>3000 m</span></div>
-                  <div class="slider-val" id="liv_hawker_val">792 m</div>
-                </div>
-                <div class="pillar-pills">
-                  <span class="pill-label">Food stalls at nearest hawker</span>
-                  <div class="stepper">
-                    <button type="button" class="step-btn" data-target="liv_hawker_stalls" data-delta="-5">&#8722;</button>
-                    <input type="number" name="hawker_stalls" id="liv_hawker_stalls"
-                      min="0" max="200" step="1" value="43" />
-                    <button type="button" class="step-btn" data-target="liv_hawker_stalls" data-delta="5">+</button>
+                <div class="pillar-option">
+                  <span class="pillar-option-label">Interchange?</span>
+                  <div class="pillar-toggle">
+                    <label class="pillar-toggle-opt"><input type="radio" name="mrt_interchange" value="0" checked /><span>No</span></label>
+                    <label class="pillar-toggle-opt"><input type="radio" name="mrt_interchange" value="1" /><span>Yes</span></label>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Mall (20%) -->
-            <div class="field slider-field" style="grid-column:1/-1">
-              <label>Mall Access <span class="pillar-weight">(20%)</span></label>
-              <div class="pillar-row">
-                <div class="pillar-dist">
-                  <span class="dist-label">Nearest mall</span>
-                  <input type="range" name="mall_distance" id="liv_mall_dist"
-                    min="0" max="3000" step="50" value="613" />
-                  <div class="slider-labels"><span>0 m</span><span>1500 m</span><span>3000 m</span></div>
-                  <div class="slider-val" id="liv_mall_val">613 m</div>
+              <!-- Primary School (20%) -->
+              <div class="pillar-card">
+                <div class="pillar-card-hd">
+                  <span class="pillar-name">Primary School</span>
+                  <span class="pillar-badge">20%</span>
                 </div>
-                <div class="pillar-pills">
-                  <span class="pill-label">Malls within 2 km</span>
-                  <div class="stepper">
-                    <button type="button" class="step-btn" data-target="liv_mall_count" data-delta="-1">&#8722;</button>
-                    <input type="number" name="mall_within_2km" id="liv_mall_count"
-                      min="0" max="20" step="1" value="5" />
-                    <button type="button" class="step-btn" data-target="liv_mall_count" data-delta="1">+</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Secondary School (20%) -->
-            <div class="field slider-field" style="grid-column:1/-1">
-              <label>Secondary School <span class="pillar-weight">(20%)</span></label>
-              <div class="pillar-row">
-                <div class="pillar-dist">
-                  <span class="dist-label">Nearest secondary school</span>
-                  <input type="range" name="sec_distance" id="liv_sec_dist"
-                    min="0" max="2000" step="50" value="459" />
-                  <div class="slider-labels"><span>0 m</span><span>1000 m</span><span>2000 m</span></div>
-                  <div class="slider-val" id="liv_sec_val">459 m</div>
-                </div>
-                <div class="pillar-pills">
-                  <span class="pill-label">Competitive school?</span>
-                  <label class="pill-opt"><input type="radio" name="sec_quality" value="0" checked /> No</label>
-                  <label class="pill-opt"><input type="radio" name="sec_quality" value="1" /> Yes</label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Primary School (20%) -->
-            <div class="field slider-field" style="grid-column:1/-1">
-              <label>Primary School <span class="pillar-weight">(20%)</span></label>
-              <div class="pillar-row">
-                <div class="pillar-dist">
-                  <span class="dist-label">Nearest primary school</span>
+                <div class="pillar-slider">
                   <input type="range" name="pri_distance" id="liv_pri_dist"
                     min="0" max="2000" step="50" value="361" />
-                  <div class="slider-labels"><span>0 m</span><span>1000 m</span><span>2000 m</span></div>
-                  <div class="slider-val" id="liv_pri_val">361 m</div>
+                  <div class="pillar-slider-footer">
+                    <span class="pillar-slider-hint">0 m</span>
+                    <span class="pillar-slider-val" id="liv_pri_val">361 m</span>
+                    <span class="pillar-slider-hint">2000 m</span>
+                  </div>
                 </div>
-                <div class="pillar-pills">
-                  <span class="pill-label">School type</span>
-                  <label class="pill-opt"><input type="radio" name="pri_school_type" value="standard" checked /> Standard</label>
-                  <label class="pill-opt"><input type="radio" name="pri_school_type" value="affiliated" /> Affiliated</label>
-                  <label class="pill-opt"><input type="radio" name="pri_school_type" value="branded" /> Branded/Elite</label>
+                <div class="pillar-option">
+                  <span class="pillar-option-label">School type</span>
+                  <div class="pillar-toggle">
+                    <label class="pillar-toggle-opt"><input type="radio" name="pri_school_type" value="standard" checked /><span>Standard</span></label>
+                    <label class="pillar-toggle-opt"><input type="radio" name="pri_school_type" value="affiliated" /><span>Affiliated</span></label>
+                    <label class="pillar-toggle-opt"><input type="radio" name="pri_school_type" value="branded" /><span>Branded</span></label>
+                  </div>
                 </div>
               </div>
-            </div>
 
+              <!-- Hawker (15%) -->
+              <div class="pillar-card">
+                <div class="pillar-card-hd">
+                  <span class="pillar-name">Hawker Centre</span>
+                  <span class="pillar-badge">15%</span>
+                </div>
+                <div class="pillar-slider">
+                  <input type="range" name="hawker_distance" id="liv_hawker_dist"
+                    min="0" max="3000" step="50" value="792" />
+                  <div class="pillar-slider-footer">
+                    <span class="pillar-slider-hint">0 m</span>
+                    <span class="pillar-slider-val" id="liv_hawker_val">792 m</span>
+                    <span class="pillar-slider-hint">3000 m</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Secondary School (20%) -->
+              <div class="pillar-card">
+                <div class="pillar-card-hd">
+                  <span class="pillar-name">Secondary School</span>
+                  <span class="pillar-badge">20%</span>
+                </div>
+                <div class="pillar-slider">
+                  <input type="range" name="sec_distance" id="liv_sec_dist"
+                    min="0" max="2000" step="50" value="459" />
+                  <div class="pillar-slider-footer">
+                    <span class="pillar-slider-hint">0 m</span>
+                    <span class="pillar-slider-val" id="liv_sec_val">459 m</span>
+                    <span class="pillar-slider-hint">2000 m</span>
+                  </div>
+                </div>
+                <div class="pillar-option">
+                  <span class="pillar-option-label">Competitive school?</span>
+                  <div class="pillar-toggle">
+                    <label class="pillar-toggle-opt"><input type="radio" name="sec_quality" value="0" checked /><span>No</span></label>
+                    <label class="pillar-toggle-opt"><input type="radio" name="sec_quality" value="1" /><span>Yes</span></label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mall (20%) -->
+              <div class="pillar-card">
+                <div class="pillar-card-hd">
+                  <span class="pillar-name">Mall Access</span>
+                  <span class="pillar-badge">20%</span>
+                </div>
+                <div class="pillar-option" style="border-top: none; padding-top: 0;">
+                  <span class="pillar-option-label">Malls within 2 km</span>
+                  <div class="pillar-toggle">
+                    <label class="pillar-toggle-opt"><input type="radio" name="mall_within_2km" value="0" /><span>None</span></label>
+                    <label class="pillar-toggle-opt"><input type="radio" name="mall_within_2km" value="2" /><span>1–3</span></label>
+                    <label class="pillar-toggle-opt"><input type="radio" name="mall_within_2km" value="5" checked /><span>4–7</span></label>
+                    <label class="pillar-toggle-opt"><input type="radio" name="mall_within_2km" value="10" /><span>8+</span></label>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /pillars-grid -->
           </div>
         </div><!-- /details-content -->
 
@@ -572,7 +580,6 @@
   [
     ['liv_mrt_dist',    'liv_mrt_val'],
     ['liv_hawker_dist', 'liv_hawker_val'],
-    ['liv_mall_dist',   'liv_mall_val'],
     ['liv_sec_dist',    'liv_sec_val'],
     ['liv_pri_dist',    'liv_pri_val'],
   ].forEach(([id, valId]) => {
@@ -587,21 +594,7 @@
     });
   });
 
-  // Stepper buttons (hawker stalls, mall count)
-  document.querySelectorAll('.step-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const inp = document.getElementById(btn.dataset.target);
-      if (!inp) return;
-      const delta = parseInt(btn.dataset.delta);
-      const newVal = Math.max(
-        parseInt(inp.min) || 0,
-        Math.min(parseInt(inp.max) || 9999, parseInt(inp.value || 0) + delta)
-      );
-      inp.value = newVal;
-    });
-  });
-
-  // ── More details toggle ───────────────────────────────────────
+// ── More details toggle ───────────────────────────────────────
   (function() {
     const btn     = document.getElementById('detailsToggle');
     const content = document.getElementById('detailsContent');
