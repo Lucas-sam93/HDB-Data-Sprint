@@ -288,6 +288,8 @@ def recommend():
         ]])
 
         pred_idx  = _rf_clf.predict(features)[0]
+        print(f"[DEBUG] features: {features}")
+        print(f"[DEBUG] pred_idx={pred_idx}  pred_town={_TOWN_CLASSES[pred_idx]}")
         pred_town = _TOWN_CLASSES[pred_idx]
         result    = f"Recommended Town: {pred_town}"
     except Exception as e:
