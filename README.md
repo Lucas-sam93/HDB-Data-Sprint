@@ -1,6 +1,6 @@
 # HDB Resale Price Predictor
 
-Capstone project for a data analytics bootcamp. We are data analysts at **WOW! Real Estate**, a Singapore property agency. The goal is to analyse the HDB resale market and build ML models to predict resale prices and recommend towns.
+Sprint project for a data analytics bootcamp. We are data analysts at **WOW! Real Estate**, a Singapore property agency. The goal is to analyse the HDB resale market and build ML models to predict resale prices and recommend towns.
 
 ## Features
 
