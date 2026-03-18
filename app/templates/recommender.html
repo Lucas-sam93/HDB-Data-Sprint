@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Town Recommender &middot; WOW! Real Estate{% endblock %}
+{% block title %}What-Town-Next? &middot; W.O.W.{% endblock %}
 
 {% block content %}
   <!-- ── Two-column body ──────────────────────────────────── -->
@@ -10,7 +10,7 @@
 
       <!-- action/method retained for no-JS progressive enhancement -->
       <form class="card" id="recommenderForm" action="/recommend" method="POST" novalidate>
-        <h2 class="card-title">Find Your Ideal Town</h2>
+        <h2 class="card-title">What-Town-Next?</h2>
 
         <div class="form-grid">
 
@@ -149,7 +149,7 @@
 
         <button type="submit" class="btn-primary" id="recommenderBtn">
           <span class="btn-spinner" aria-hidden="true"></span>
-          <span class="btn-label">Get Recommendation &rarr;</span>
+          <span class="btn-label">Find My Town &rarr;</span>
         </button>
 
       </form>
@@ -246,7 +246,7 @@
     const ctaBtn        = document.getElementById('resultCtaBtn');
     const labelEl       = document.getElementById('resultLabel');
 
-    labelEl.textContent      = 'Your Best-Match Towns';
+    labelEl.textContent      = 'Your W.O.W. Factor Towns';
     priceEl.style.display    = 'none';
     rangeEl.style.display    = 'none';
     townDescEl.style.display = 'none';
@@ -257,6 +257,10 @@
     setTimeout(() => {
       chipsEl.innerHTML = '';
       if (data.rec_towns && data.rec_towns.length) {
+        const wowLabel = document.createElement('div');
+        wowLabel.className = 'result-wow-label';
+        wowLabel.textContent = 'W.O.W. Factor';
+        chipsEl.appendChild(wowLabel);
         const toTitle = s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
         data.rec_towns.forEach((item, idx) => {
           const name  = typeof item === 'string' ? item : item.name;
@@ -278,13 +282,13 @@
     }, 300);
 
     setTimeout(() => {
-      reassuranceEl.textContent = 'Matched from real Singapore HDB resale data';
+      reassuranceEl.textContent = 'Matched from 270,000+ real HDB resale transactions';
       fadeInEl(reassuranceEl, 0);
     }, 500);
 
     setTimeout(() => {
-      ctaLabelEl.textContent = 'Want to estimate a price instead?';
-      ctaBtn.textContent     = 'Price Estimator \u2192';
+      ctaLabelEl.textContent = 'Want to check the price?';
+      ctaBtn.textContent     = 'Try Worth-O-Meter \u2192';
       ctaBtn.onclick = () => { window.location.href = '/'; };
       fadeInEl(dividerEl, 0);
       fadeInEl(ctaLabelEl, 50);

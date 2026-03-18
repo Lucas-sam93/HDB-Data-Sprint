@@ -566,6 +566,14 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* Reassurance + CTA */
+.result-wow-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
 .result-reassurance {
   color: var(--muted);
   font-size: 0.78rem;

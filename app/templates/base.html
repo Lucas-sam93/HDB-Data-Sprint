@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}WOW! Real Estate{% endblock %}</title>
+  <title>{% block title %}W.O.W. &mdash; Worth-Or-What?{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=10" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=11" />
 </head>
 <body>
 
@@ -15,17 +15,17 @@
 
   <!-- ── Hero Bar ─────────────────────────────────────────── -->
   <header class="hero" role="banner">
-    <div class="hero-brand">WOW! Real Estate</div>
+    <div class="hero-brand">W.O.W.</div>
     <div class="hero-centre">
       <h1 class="hero-title">HDB Resale Adviser</h1>
-      <p class="hero-subtitle">AI-powered tools &middot; Singapore public housing</p>
-      <p class="hero-trust">Built on real Singapore HDB resale data</p>
+      <p class="hero-subtitle">Singapore HDB resale &middot; Worth-Or-What?</p>
+      <p class="hero-trust">Built on 270,000+ real HDB resale transactions</p>
       <nav class="hero-nav" aria-label="Tools">
         <a href="/" class="hero-nav-link{% if active_page == 'estimator' %} active{% endif %}">
-          Price Estimator
+          Worth-O-Meter
         </a>
         <a href="/recommender" class="hero-nav-link{% if active_page == 'recommender' %} active{% endif %}">
-          Town Recommender
+          What-Town-Next?
         </a>
       </nav>
     </div>
@@ -49,7 +49,7 @@
   {% block content %}{% endblock %}
 
   <footer class="footer">
-    &copy; 2026 WOW! Real Estate &middot; For informational purposes only
+    &copy; 2026 W.O.W. &middot; Worth-Or-What? &middot; For informational purposes only
   </footer>
 
   <script>
@@ -120,8 +120,8 @@
     btn.disabled = loading;
     btn.classList.toggle('loading', loading);
     btn.querySelector('.btn-label').textContent = loading
-      ? (btn.id === 'estimatorBtn' ? 'Estimating\u2026' : 'Finding\u2026')
-      : (btn.id === 'estimatorBtn' ? 'Re-estimate \u2192' : 'Get Recommendation \u2192');
+      ? (btn.id === 'estimatorBtn' ? 'Estimating\u2026' : 'Scouting\u2026')
+      : (btn.id === 'estimatorBtn' ? 'Re-estimate \u2192' : 'Scout Again \u2192');
     if (loading) {
       panel.classList.add('has-result', 'is-loading');
       document.getElementById('resultContent').style.display = 'none';

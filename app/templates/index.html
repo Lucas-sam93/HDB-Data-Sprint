@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Price Estimator &middot; WOW! Real Estate{% endblock %}
+{% block title %}Worth-O-Meter &middot; W.O.W.{% endblock %}
 
 {% block content %}
   <!-- ── Two-column body ──────────────────────────────────── -->
@@ -11,7 +11,7 @@
       <!-- Price Estimator form -->
       <!-- action/method retained for no-JS progressive enhancement; fetch intercepts when JS is available -->
       <form class="card" id="estimatorForm" action="/predict" method="POST" novalidate>
-        <h2 class="card-title">Property Details</h2>
+        <h2 class="card-title">Worth-O-Meter</h2>
         <p class="card-hint">Fill in what you know &mdash; all fields are optional.</p>
 
         <div class="form-grid">
@@ -264,7 +264,7 @@
 
         <button type="submit" class="btn-primary" id="estimatorBtn">
           <span class="btn-spinner" aria-hidden="true"></span>
-          <span class="btn-label">Estimate Price &rarr;</span>
+          <span class="btn-label">Estimate Worth &rarr;</span>
         </button>
 
       </form><!-- /estimatorForm -->
@@ -577,8 +577,8 @@
     }, 600);
 
     setTimeout(() => {
-      ctaLabelEl.textContent = 'Not sure which town to buy in?';
-      ctaBtn.textContent = 'Town Recommender \u2192';
+      ctaLabelEl.textContent = 'Don\u2019t know which town to buy in?';
+      ctaBtn.textContent = 'Try What-Town-Next? \u2192';
       ctaBtn.onclick = () => { window.location.href = '/recommender'; };
       fadeInEl(dividerEl, 0);
       fadeInEl(ctaLabelEl, 50);
