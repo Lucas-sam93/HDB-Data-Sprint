@@ -297,22 +297,51 @@ def recommend():
         mall_dist   = 500.0  if request.form.get("near_mall")   == "1" else 1500.0
         school_dist = 500.0  if request.form.get("near_school") == "1" else 1500.0
 
-        # ── 3. Build feature array in exact training order ────────────────
+        # ── 3. Compute derived features ───────────────────────────────────
+        # cbd_distance_band: bin continuous distance into 4 ordinal bands
+        if distance_cbd <= 5:
+            cbd_distance_band = 1.0
+        elif distance_cbd <= 10:
+            cbd_distance_band = 2.0
+        elif distance_cbd <= 15:
+            cbd_distance_band = 3.0
+        else:
+            cbd_distance_band = 4.0
+
+        # estate_height_modernity: tall-new vs tall-old signal
+        estate_height_modernity = max_floor_lvl / (hdb_age + 1)
+
+        # amenity_cluster tiers: count of amenity types within each radius
+        amenity_500m = (int(mrt_dist < 500) + int(mall_dist < 500)
+                        + int(hawker_dist < 500) + int(school_dist < 500))
+        amenity_1km  = (int(mrt_dist < 1000) + int(mall_dist < 1000)
+                        + int(hawker_dist < 1000) + int(school_dist < 1000))
+        amenity_2km  = (int(mrt_dist < 2000) + int(mall_dist < 2000)
+                        + int(hawker_dist < 2000) + int(school_dist < 2000))
+
+        # block_diversity: Shannon entropy of flat-type mix — not a form input.
+        # Dataset median (~0.8) used as inference-time default.
+        block_diversity = 0.8
+
+        # ── 4. Build feature array in exact training order ────────────────
         feature_map = {
             "resale_price":             resale_price,
             "floor_area_sqm":           floor_area_sqm,
-            "hdb_age":                  hdb_age,
-            "distance_from_cbd":        distance_cbd,
+            "block_diversity":          block_diversity,
+            "cbd_distance_band":        cbd_distance_band,
             "mrt_nearest_distance":     mrt_dist,
             "Hawker_Nearest_Distance":  hawker_dist,
             "Mall_Nearest_Distance":    mall_dist,
             "pri_sch_nearest_distance": school_dist,
-            "max_floor_lvl":            max_floor_lvl,
             "storey_ratio":             storey_ratio,
+            "estate_height_modernity":  estate_height_modernity,
+            "amenity_cluster_500m":     float(amenity_500m),
+            "amenity_cluster_1km":      float(amenity_1km),
+            "amenity_cluster_2km":      float(amenity_2km),
         }
         features = np.array([[feature_map[col] for col in _CLF_FEATURE_COLS]])
 
-        # ── 4. Scale → predict cluster + confidence ───────────────────────
+        # ── 5. Scale → predict cluster + confidence ───────────────────────
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             features_scaled    = _clf_scaler.transform(features)
@@ -329,7 +358,7 @@ def recommend():
                 t for t in _REGION_TOWNS[planning_region] if t in _TOWN_PROFILE_SCALED
             )
 
-        # ── 5. Score each town by L2 distance in scaled feature space ────
+        # ── 6. Score each town by L2 distance in scaled feature space ────
         buyer_vec = features_scaled[0]
         scored = []
         for town in cluster_towns:

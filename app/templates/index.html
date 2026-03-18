@@ -445,6 +445,19 @@
                 </div>
               </div>
 
+              <!-- 6. Building height → max_floor_lvl (used with hdb_age to compute estate_height_modernity) -->
+              <div class="field field-full">
+                <span class="field-label">Building Height</span>
+                <div class="pill-group" role="group" aria-label="Building height">
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_low" value="8" class="pill-radio">
+                  <label for="rec_ht_low" class="pill-label">Low-rise <span class="pill-sub">&le;10 floors</span></label>
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_mid" value="15" class="pill-radio" checked>
+                  <label for="rec_ht_mid" class="pill-label">Mid-rise <span class="pill-sub">10&ndash;20 floors</span></label>
+                  <input type="radio" name="max_floor_lvl" id="rec_ht_high" value="25" class="pill-radio">
+                  <label for="rec_ht_high" class="pill-label">High-rise <span class="pill-sub">20+ floors</span></label>
+                </div>
+              </div>
+
               </div>
             </div>
 
