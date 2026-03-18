@@ -73,10 +73,9 @@ body {
   position: relative;
   background: var(--navy);
   overflow: hidden;
-  padding: 0 2rem;
-  height: 148px;
+  padding: 1.25rem 2rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
@@ -99,10 +98,14 @@ body {
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
+  padding-top: 0.3rem;
 }
 .hero-centre {
   flex: 1;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
 }
 .hero-title {
   font-family: 'DM Serif Display', Georgia, serif;
@@ -115,29 +118,33 @@ body {
 .hero-subtitle {
   color: var(--muted);
   font-size: 0.82rem;
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 .hero-trust {
   color: #94a3b8;
   font-size: 0.75rem;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
   display: none; /* shown only ≥1024px via media query below */
 }
 
 /* ── Hero nav ──────────────────────────────────────────────── */
 .hero-nav {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.2rem;
   align-items: center;
   justify-content: center;
-  margin-top: 0.6rem;
+  margin-top: 0.75rem;
+  padding: 0.25rem;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
 }
 .hero-nav-link {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255,255,255,0.5);
   text-decoration: none;
-  padding: 0.35rem 0.8rem;
+  padding: 0.3rem 0.9rem;
   border-radius: 999px;
   transition: color 150ms, background 150ms;
   white-space: nowrap;
@@ -147,8 +154,8 @@ body {
   background: rgba(255,255,255,0.1);
 }
 .hero-nav-link.active {
-  color: var(--accent);
-  background: rgba(224,82,6,0.15);
+  color: #fff;
+  background: var(--accent);
   font-weight: 600;
 }
 
@@ -162,6 +169,7 @@ body {
   color: #94a3b8;
   transition: border-color var(--ease), color var(--ease);
   flex-shrink: 0;
+  align-self: flex-start;
   display: flex;
   align-items: center;
   gap: 0;
@@ -651,7 +659,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @media (max-width: 767px) {
-  .hero { height: auto; padding: 1rem 1.25rem; }
+  .hero { padding: 1rem 1.25rem; }
   .hero-brand { display: none; } /* hide brand wordmark on mobile to save space */
   .form-grid { grid-template-columns: 1fr; }
   .card { padding: 1.25rem; }
