@@ -933,8 +933,8 @@
           const name  = typeof item === 'string' ? item : item.name;
           const score = (typeof item === 'object' && item.score != null) ? item.score : null;
           const chip  = document.createElement('span');
-          chip.className = 'chip';
-          chip.style.fontSize = Math.max(0.72, 1.15 - idx * 0.1) + 'em';
+          chip.className = idx === 0 ? 'chip chip--primary' : 'chip';
+          if (idx > 0) chip.style.fontSize = Math.max(0.72, 0.88 - (idx - 1) * 0.05) + 'em';
           chip.textContent = toTitle(name);
           if (score !== null) {
             const badge = document.createElement('span');
