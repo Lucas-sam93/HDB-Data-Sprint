@@ -54,7 +54,7 @@
 
           <!-- Flat Type: pill selector -->
           <div class="field field-full">
-            <label>Flat Type</label>
+            <span class="field-label">Flat Type</span>
             <div class="pill-group" role="group" aria-label="Flat type">
               <input type="radio" name="flat_type" id="ft_1r" value="1 ROOM" class="pill-radio">
               <label for="ft_1r" class="pill-label">1 Room</label>
@@ -313,7 +313,7 @@
             stroke-linejoin="round" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"/>
           </svg>
-          Not sure which town? Find your ideal neighbourhood
+          Not sure which town? Find your ideal match
         </button>
 
       </form><!-- /estimatorForm -->
@@ -325,13 +325,13 @@
           <form class="card" id="recommenderForm" action="/recommend" method="POST" novalidate
             style="border:none;padding:0;box-shadow:none;background:transparent;">
             <h2 class="card-title">Find Your Ideal Town</h2>
-            <p class="card-hint">Tell us your preferences &mdash; we&rsquo;ll match you to the best neighbourhood.</p>
+            <p class="card-hint">Tell us your preferences &mdash; we&rsquo;ll match you to the best town.</p>
 
             <div class="form-grid">
 
               <!-- 1. Location → cbd_distance_km (Singapore planning regions) -->
               <div class="field field-full">
-                <label>Location <span class="field-hint">how close to the city centre do you want to be?</span></label>
+                <span class="field-label">Location <span class="field-hint">how close to the city centre do you want to be?</span></span>
                 <div class="pill-group" role="group" aria-label="Location region">
                   <input type="radio" name="cbd_distance_km" id="rec_loc_central" value="5" class="pill-radio" checked>
                   <label for="rec_loc_central" class="pill-label">Central</label>
@@ -349,7 +349,7 @@
 
               <!-- 2. Budget → resale_price -->
               <div class="field field-full">
-                <label>Budget</label>
+                <span class="field-label">Budget</span>
                 <div class="pill-group" role="group" aria-label="Budget">
                   <input type="radio" name="resale_price" id="rec_budget_400" value="350000" class="pill-radio">
                   <label for="rec_budget_400" class="pill-label">&le;$400k</label>
@@ -364,7 +364,7 @@
 
               <!-- 3. Near Hawker → near_hawker -->
               <div class="field field-full">
-                <label>Hawker Centre Proximity <span class="field-hint">strong signal for neighbourhood type</span></label>
+                <span class="field-label">Hawker Centre Proximity <span class="field-hint">helps narrow down your best match</span></span>
                 <div class="pillar-toggle" role="group" aria-label="Near hawker centre">
                   <label class="pillar-toggle-opt">
                     <input type="checkbox" name="near_hawker" value="1">
@@ -375,7 +375,7 @@
 
               <!-- 4. Flat size → floor_area_sqm -->
               <div class="field field-full">
-                <label>Flat Size</label>
+                <span class="field-label">Flat Size</span>
                 <div class="pill-group" role="group" aria-label="Flat size">
                   <input type="radio" name="floor_area_sqm" id="rec_size_2r" value="45" class="pill-radio">
                   <label for="rec_size_2r" class="pill-label">2-Room</label>
@@ -392,7 +392,7 @@
 
               <!-- 5. Estate age → hdb_age (direct feature in classifier) -->
               <div class="field field-full">
-                <label>Estate Age Preference <span class="field-hint">newer estates tend to be further from the city; older ones are more central</span></label>
+                <span class="field-label">Estate Age Preference <span class="field-hint">newer estates tend to be further from the city; older ones are more central</span></span>
                 <div class="pill-group" role="group" aria-label="Estate age">
                   <input type="radio" name="hdb_age" id="rec_age_new" value="5" class="pill-radio">
                   <label for="rec_age_new" class="pill-label">New <span class="pill-sub">&lt;10 yrs</span></label>
@@ -407,7 +407,7 @@
 
               <!-- 6. Other amenities → near_mrt, near_mall, near_school (hawker separated above) -->
               <div class="field field-full">
-                <label>Other Amenities <span class="field-hint">toggle all that matter to you</span></label>
+                <span class="field-label">Other Amenities <span class="field-hint">toggle all that matter to you</span></span>
                 <div class="pillar-toggle" role="group" aria-label="Other amenities">
                   <label class="pillar-toggle-opt">
                     <input type="checkbox" name="near_mrt" value="1">
@@ -426,7 +426,7 @@
 
               <!-- 7. Building height → max_floor_lvl -->
               <div class="field">
-                <label>Building Height <span class="field-hint">neighbourhood character</span></label>
+                <span class="field-label">Building Height <span class="field-hint">neighbourhood character</span></span>
                 <div class="pill-group" role="group" aria-label="Building height">
                   <input type="radio" name="max_floor_lvl" id="rec_ht_low" value="8" class="pill-radio">
                   <label for="rec_ht_low" class="pill-label">Low-rise</label>
@@ -439,7 +439,7 @@
 
               <!-- 8. Floor preference → storey_ratio -->
               <div class="field">
-                <label>Floor Preference <span class="field-hint">how high up in the building?</span></label>
+                <span class="field-label">Floor Preference <span class="field-hint">how high up in the building?</span></span>
                 <div class="pill-group" role="group" aria-label="Floor preference">
                   <input type="radio" name="storey_ratio" id="rec_fl_low" value="0.25" class="pill-radio">
                   <label for="rec_fl_low" class="pill-label">Low</label>
@@ -475,8 +475,20 @@
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-          <div class="result-empty-title">Your estimate will appear here</div>
-          <div class="result-empty-hint">Fill in the form on the left to get started</div>
+          <div class="result-empty-title">Your result will appear here</div>
+          <div class="result-empty-hint">Fill in the form above to get started</div>
+        </div>
+
+        <!-- Skeleton (shown during loading) -->
+        <div class="result-skeleton" id="resultSkeleton" aria-hidden="true">
+          <div class="skel skel-label"></div>
+          <div class="skel skel-price"></div>
+          <div class="skel skel-range"></div>
+          <div class="skel-chips">
+            <div class="skel skel-chip"></div>
+            <div class="skel skel-chip"></div>
+            <div class="skel skel-chip skel-chip--sm"></div>
+          </div>
         </div>
 
         <!-- Result content (hidden until fetch returns) -->
@@ -764,6 +776,8 @@
 
   function showResult() {
     panel.classList.add('has-result');
+    panel.classList.remove('is-loading');
+    document.getElementById('resultContent').style.display = '';
     // Scroll result into view on tablet/mobile
     if (window.innerWidth < 1024) {
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -942,6 +956,13 @@
     btn.querySelector('.btn-label').textContent = loading
       ? (btn.id === 'estimatorBtn' ? 'Estimating\u2026' : 'Finding\u2026')
       : (btn.id === 'estimatorBtn' ? 'Re-estimate \u2192' : 'Get Recommendation \u2192');
+    // Show skeleton in result panel while loading
+    if (loading) {
+      panel.classList.add('has-result', 'is-loading');
+      document.getElementById('resultContent').style.display = 'none';
+    } else {
+      panel.classList.remove('is-loading');
+    }
   }
 
   // ── Estimator form submit ─────────────────────────────────────
@@ -963,12 +984,14 @@
       renderEstimatorResult(data);
     } catch (err) {
       console.error(err);
-      // Show error state in result panel
       panel.classList.add('has-result');
-      document.getElementById('resultLabel').textContent = 'Something went wrong';
+      panel.classList.remove('is-loading');
+      document.getElementById('resultContent').style.display = '';
+      document.getElementById('resultLabel').textContent = 'Unable to get estimate';
       document.getElementById('resultPrice').textContent = '\u2014';
       document.getElementById('resultPrice').style.display = '';
-      document.getElementById('resultRange').textContent = 'Please try again.';
+      document.getElementById('resultRange').textContent = 'Check your connection and try again.';
+      document.getElementById('resultRange').style.display = '';
       document.getElementById('resultChips').innerHTML = '';
       document.getElementById('resultReassurance').textContent = '';
     } finally {
@@ -1007,11 +1030,14 @@
     } catch (err) {
       console.error(err);
       panel.classList.add('has-result');
-      document.getElementById('resultLabel').textContent = 'Something went wrong';
-      document.getElementById('resultTown').textContent = '\u2014';
-      document.getElementById('resultTown').style.display = '';
-      document.getElementById('resultRange').style.display = 'none';
-      document.getElementById('resultReassurance').textContent = 'Please try again.';
+      panel.classList.remove('is-loading');
+      document.getElementById('resultContent').style.display = '';
+      document.getElementById('resultLabel').textContent = 'Unable to get recommendation';
+      document.getElementById('resultTown').style.display = 'none';
+      document.getElementById('resultRange').textContent = 'Check your connection and try again.';
+      document.getElementById('resultRange').style.display = '';
+      document.getElementById('resultChips').innerHTML = '';
+      document.getElementById('resultReassurance').textContent = '';
     } finally {
       setLoading(btn, false);
     }
