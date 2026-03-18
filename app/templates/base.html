@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=9" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=10" />
 </head>
 <body>
 
@@ -20,15 +20,15 @@
       <h1 class="hero-title">HDB Resale Adviser</h1>
       <p class="hero-subtitle">AI-powered tools &middot; Singapore public housing</p>
       <p class="hero-trust">Built on real Singapore HDB resale data</p>
+      <nav class="hero-nav" aria-label="Tools">
+        <a href="/" class="hero-nav-link{% if active_page == 'estimator' %} active{% endif %}">
+          Price Estimator
+        </a>
+        <a href="/recommender" class="hero-nav-link{% if active_page == 'recommender' %} active{% endif %}">
+          Town Recommender
+        </a>
+      </nav>
     </div>
-    <nav class="hero-nav" aria-label="Tools">
-      <a href="/" class="hero-nav-link{% if active_page == 'estimator' %} active{% endif %}">
-        Price Estimator
-      </a>
-      <a href="/recommender" class="hero-nav-link{% if active_page == 'recommender' %} active{% endif %}">
-        Town Recommender
-      </a>
-    </nav>
     <button class="theme-toggle" id="themeToggle" aria-label="Switch to dark mode">
       <!-- Sun icon (shown in dark mode) -->
       <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"

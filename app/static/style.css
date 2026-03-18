@@ -74,7 +74,7 @@ body {
   background: var(--navy);
   overflow: hidden;
   padding: 0 2rem;
-  height: 120px;
+  height: 148px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -129,7 +129,8 @@ body {
   display: flex;
   gap: 0.25rem;
   align-items: center;
-  flex-shrink: 0;
+  justify-content: center;
+  margin-top: 0.6rem;
 }
 .hero-nav-link {
   font-size: 0.85rem;
