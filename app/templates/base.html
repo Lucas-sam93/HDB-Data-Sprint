@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=11" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=12" />
 </head>
 <body>
 
@@ -15,7 +15,9 @@
 
   <!-- ── Hero Bar ─────────────────────────────────────────── -->
   <header class="hero" role="banner">
-    <div class="hero-brand">W.O.W.</div>
+    <div class="hero-brand">
+      <img src="{{ url_for('static', filename='wow-logo.png') }}" alt="W.O.W. – Worth-Or-What?" class="hero-logo" />
+    </div>
     <div class="hero-centre">
       <h1 class="hero-title">HDB Resale Adviser</h1>
       <p class="hero-subtitle">Singapore HDB resale &middot; Worth-Or-What?</p>

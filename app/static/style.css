@@ -91,14 +91,16 @@ body {
   pointer-events: none;
 }
 .hero-brand {
-  font-family: 'DM Serif Display', Georgia, serif;
-  color: var(--accent);
-  font-size: 0.85rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
   flex-shrink: 0;
-  padding-top: 0.3rem;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 0.1rem;
+}
+.hero-logo {
+  height: 64px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 .hero-centre {
   flex: 1;
@@ -668,7 +670,7 @@ input[type="range"]::-moz-range-thumb {
 
 @media (max-width: 767px) {
   .hero { padding: 1rem 1.25rem; }
-  .hero-brand { display: none; } /* hide brand wordmark on mobile to save space */
+  .hero-logo { height: 44px; } /* shrink logo on mobile */
   .form-grid { grid-template-columns: 1fr; }
   .card { padding: 1.25rem; }
   .result-price { font-size: 2rem; }
