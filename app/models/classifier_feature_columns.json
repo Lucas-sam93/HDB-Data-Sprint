@@ -1,12 +1,14 @@
 [
   "resale_price",
   "floor_area_sqm",
-  "hdb_age",
-  "distance_from_cbd",
+  "block_diversity",
   "mrt_nearest_distance",
   "Hawker_Nearest_Distance",
   "Mall_Nearest_Distance",
   "pri_sch_nearest_distance",
-  "max_floor_lvl",
-  "storey_ratio"
+  "storey_ratio",
+  "estate_height_modernity",
+  "amenity_cluster_500m",
+  "amenity_cluster_1km",
+  "amenity_cluster_2km"
 ]
