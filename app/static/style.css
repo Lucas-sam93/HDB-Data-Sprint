@@ -821,3 +821,4 @@ input[type="range"]::-moz-range-thumb {
 
 /* ── Pill sub-label (small descriptive text inside pill) ─────── */
 .pill-sub { font-size: 0.70rem; opacity: 0.65; }
+.pill-radio:checked + .pill-label .pill-sub { opacity: 0.85; }

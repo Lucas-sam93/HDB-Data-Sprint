@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=8" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=9" />
 </head>
 <body>
 
@@ -325,13 +325,12 @@
           <form class="card" id="recommenderForm" action="/recommend" method="POST" novalidate
             style="border:none;padding:0;box-shadow:none;background:transparent;">
             <h2 class="card-title">Find Your Ideal Town</h2>
-            <p class="card-hint">Tell us your preferences &mdash; we&rsquo;ll match you to the best town.</p>
 
             <div class="form-grid">
 
-              <!-- 1. Location → cbd_distance_km (Singapore planning regions) -->
+              <!-- 1. Location → cbd_distance_km -->
               <div class="field field-full">
-                <span class="field-label">Location <span class="field-hint">how close to the city centre do you want to be?</span></span>
+                <span class="field-label">Location</span>
                 <div class="pill-group" role="group" aria-label="Location region">
                   <input type="radio" name="cbd_distance_km" id="rec_loc_central" value="5" class="pill-radio" checked>
                   <label for="rec_loc_central" class="pill-label">Central</label>
@@ -362,18 +361,7 @@
                 </div>
               </div>
 
-              <!-- 3. Near Hawker → near_hawker -->
-              <div class="field field-full">
-                <span class="field-label">Hawker Centre Proximity <span class="field-hint">helps narrow down your best match</span></span>
-                <div class="pillar-toggle" role="group" aria-label="Near hawker centre">
-                  <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_hawker" value="1">
-                    <span>Within 500m of a hawker centre</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- 4. Flat size → floor_area_sqm -->
+              <!-- 3. Flat size → floor_area_sqm -->
               <div class="field field-full">
                 <span class="field-label">Flat Size</span>
                 <div class="pill-group" role="group" aria-label="Flat size">
@@ -390,9 +378,48 @@
                 </div>
               </div>
 
-              <!-- 5. Estate age → hdb_age (direct feature in classifier) -->
+              <!-- 4. Amenities → near_hawker, near_mrt, near_mall, near_school -->
               <div class="field field-full">
-                <span class="field-label">Estate Age Preference <span class="field-hint">newer estates tend to be further from the city; older ones are more central</span></span>
+                <span class="field-label">Amenities</span>
+                <div class="pillar-toggle" role="group" aria-label="Nearby amenities">
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_hawker" value="1">
+                    <span>Hawker</span>
+                  </label>
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_mrt" value="1">
+                    <span>MRT</span>
+                  </label>
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_mall" value="1">
+                    <span>Mall</span>
+                  </label>
+                  <label class="pillar-toggle-opt">
+                    <input type="checkbox" name="near_school" value="1">
+                    <span>School</span>
+                  </label>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- More preferences toggle -->
+            <button type="button" class="details-toggle" id="recDetailsToggle"
+              aria-expanded="false" aria-controls="recDetailsContent">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+              More preferences
+            </button>
+
+            <div class="details-content" id="recDetailsContent" aria-hidden="true">
+              <div class="form-grid">
+
+              <!-- 4. Estate age → hdb_age -->
+              <div class="field field-full">
+                <span class="field-label">Estate Age</span>
                 <div class="pill-group" role="group" aria-label="Estate age">
                   <input type="radio" name="hdb_age" id="rec_age_new" value="5" class="pill-radio">
                   <label for="rec_age_new" class="pill-label">New <span class="pill-sub">&lt;10 yrs</span></label>
@@ -405,41 +432,9 @@
                 </div>
               </div>
 
-              <!-- 6. Other amenities → near_mrt, near_mall, near_school (hawker separated above) -->
+              <!-- 5. Floor preference → storey_ratio -->
               <div class="field field-full">
-                <span class="field-label">Other Amenities <span class="field-hint">toggle all that matter to you</span></span>
-                <div class="pillar-toggle" role="group" aria-label="Other amenities">
-                  <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_mrt" value="1">
-                    <span>Near MRT</span>
-                  </label>
-                  <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_mall" value="1">
-                    <span>Near Mall</span>
-                  </label>
-                  <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_school" value="1">
-                    <span>Near School</span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- 7. Building height → max_floor_lvl -->
-              <div class="field">
-                <span class="field-label">Building Height <span class="field-hint">neighbourhood character</span></span>
-                <div class="pill-group" role="group" aria-label="Building height">
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_low" value="8" class="pill-radio">
-                  <label for="rec_ht_low" class="pill-label">Low-rise</label>
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_mid" value="15" class="pill-radio" checked>
-                  <label for="rec_ht_mid" class="pill-label">Mid-rise</label>
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_high" value="25" class="pill-radio">
-                  <label for="rec_ht_high" class="pill-label">High-rise</label>
-                </div>
-              </div>
-
-              <!-- 8. Floor preference → storey_ratio -->
-              <div class="field">
-                <span class="field-label">Floor Preference <span class="field-hint">how high up in the building?</span></span>
+                <span class="field-label">Floor Preference</span>
                 <div class="pill-group" role="group" aria-label="Floor preference">
                   <input type="radio" name="storey_ratio" id="rec_fl_low" value="0.25" class="pill-radio">
                   <label for="rec_fl_low" class="pill-label">Low</label>
@@ -450,6 +445,7 @@
                 </div>
               </div>
 
+              </div>
             </div>
 
             <button type="submit" class="btn-primary" id="recommenderBtn">
@@ -674,6 +670,19 @@
       d.textContent = parseInt(s.value) + ' m';
     });
   });
+
+// ── Recommender "More preferences" toggle ─────────────────────
+  (function() {
+    const btn     = document.getElementById('recDetailsToggle');
+    const content = document.getElementById('recDetailsContent');
+    if (!btn || !content) return;
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', !open);
+      content.setAttribute('aria-hidden', open);
+      content.classList.toggle('open', !open);
+    });
+  })();
 
 // ── More details toggle ───────────────────────────────────────
   (function() {
