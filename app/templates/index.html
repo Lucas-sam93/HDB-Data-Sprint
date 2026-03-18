@@ -1,43 +1,7 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HDB Resale Price Predictor &middot; WOW! Real Estate</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=9" />
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Price Estimator &middot; WOW! Real Estate{% endblock %}
 
-  <a class="skip-link" href="#main">Skip to main content</a>
-
-  <!-- ── Hero Bar ─────────────────────────────────────────── -->
-  <header class="hero" role="banner">
-    <div class="hero-brand">WOW! Real Estate</div>
-    <div class="hero-centre">
-      <h1 class="hero-title">HDB Resale Price Predictor</h1>
-      <p class="hero-subtitle">AI-powered estimates &middot; Singapore public housing</p>
-      <p class="hero-trust">Estimate based on real Singapore HDB resale data</p>
-    </div>
-    <button class="theme-toggle" id="themeToggle" aria-label="Switch to dark mode">
-      <!-- Sun icon (shown in dark mode) -->
-      <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="4"/>
-        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-      </svg>
-      <!-- Moon icon (shown in light mode) -->
-      <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round" aria-hidden="true">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-      </svg>
-    </button>
-  </header>
-
+{% block content %}
   <!-- ── Two-column body ──────────────────────────────────── -->
   <div class="page-body" id="main">
 
@@ -298,177 +262,12 @@
           </div>
         </div><!-- /details-content -->
 
-<button type="submit" class="btn-primary" id="estimatorBtn">
+        <button type="submit" class="btn-primary" id="estimatorBtn">
           <span class="btn-spinner" aria-hidden="true"></span>
           <span class="btn-label">Estimate Price &rarr;</span>
         </button>
 
-        <!-- Recommender toggle -->
-        <!-- NOTE: This button is inside estimatorForm but has type="button" so it will not trigger form submit.
-             The recSection it controls is a sibling of the form (outside it) — valid HTML. -->
-        <button type="button" class="rec-toggle" id="recToggle"
-          aria-expanded="false" aria-controls="recSection">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            stroke-linejoin="round" aria-hidden="true">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-          Not sure which town? Find your ideal match
-        </button>
-
       </form><!-- /estimatorForm -->
-
-      <!-- Recommender section (expandable) -->
-      <div class="rec-section" id="recSection" aria-hidden="true">
-        <div class="rec-section-inner">
-          <!-- action/method retained for no-JS progressive enhancement -->
-          <form class="card" id="recommenderForm" action="/recommend" method="POST" novalidate
-            style="border:none;padding:0;box-shadow:none;background:transparent;">
-            <h2 class="card-title">Find Your Ideal Town</h2>
-
-            <div class="form-grid">
-
-              <!-- 1. Location → cbd_distance_km -->
-              <div class="field field-full">
-                <span class="field-label">Location</span>
-                <div class="pill-group" role="group" aria-label="Location region">
-                  <input type="radio" name="cbd_distance_km" id="rec_loc_central" value="5" class="pill-radio" checked>
-                  <label for="rec_loc_central" class="pill-label">Central</label>
-                  <input type="radio" name="cbd_distance_km" id="rec_loc_east" value="14" class="pill-radio">
-                  <label for="rec_loc_east" class="pill-label">East</label>
-                  <input type="radio" name="cbd_distance_km" id="rec_loc_northeast" value="13" class="pill-radio">
-                  <label for="rec_loc_northeast" class="pill-label">North-East</label>
-                  <input type="radio" name="cbd_distance_km" id="rec_loc_west" value="15" class="pill-radio">
-                  <label for="rec_loc_west" class="pill-label">West</label>
-                  <input type="radio" name="cbd_distance_km" id="rec_loc_north" value="23" class="pill-radio">
-                  <label for="rec_loc_north" class="pill-label">North</label>
-                </div>
-                <input type="hidden" name="planning_region" id="planning_region_value" value="Central">
-              </div>
-
-              <!-- 2. Budget → resale_price -->
-              <div class="field field-full">
-                <span class="field-label">Budget</span>
-                <div class="pill-group" role="group" aria-label="Budget">
-                  <input type="radio" name="resale_price" id="rec_budget_400" value="350000" class="pill-radio">
-                  <label for="rec_budget_400" class="pill-label">&le;$400k</label>
-                  <input type="radio" name="resale_price" id="rec_budget_600" value="500000" class="pill-radio" checked>
-                  <label for="rec_budget_600" class="pill-label">$400&ndash;600k</label>
-                  <input type="radio" name="resale_price" id="rec_budget_800" value="700000" class="pill-radio">
-                  <label for="rec_budget_800" class="pill-label">$600&ndash;800k</label>
-                  <input type="radio" name="resale_price" id="rec_budget_800p" value="950000" class="pill-radio">
-                  <label for="rec_budget_800p" class="pill-label">$800k+</label>
-                </div>
-              </div>
-
-              <!-- 3. Flat size → floor_area_sqm -->
-              <div class="field field-full">
-                <span class="field-label">Flat Size</span>
-                <div class="pill-group" role="group" aria-label="Flat size">
-                  <input type="radio" name="floor_area_sqm" id="rec_size_2r" value="45" class="pill-radio">
-                  <label for="rec_size_2r" class="pill-label">2-Room</label>
-                  <input type="radio" name="floor_area_sqm" id="rec_size_3r" value="68" class="pill-radio">
-                  <label for="rec_size_3r" class="pill-label">3-Room</label>
-                  <input type="radio" name="floor_area_sqm" id="rec_size_4r" value="93" class="pill-radio" checked>
-                  <label for="rec_size_4r" class="pill-label">4-Room</label>
-                  <input type="radio" name="floor_area_sqm" id="rec_size_5r" value="113" class="pill-radio">
-                  <label for="rec_size_5r" class="pill-label">5-Room</label>
-                  <input type="radio" name="floor_area_sqm" id="rec_size_ex" value="143" class="pill-radio">
-                  <label for="rec_size_ex" class="pill-label">Executive</label>
-                </div>
-              </div>
-
-              <!-- 4. Amenities → near_hawker, near_mrt, near_mall, near_school -->
-              <div class="field field-full">
-                <span class="field-label">Amenities</span>
-                <div class="pillar-toggle" role="group" aria-label="Nearby amenities">
-                  <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_hawker" value="1">
-                    <span>Hawker</span>
-                  </label>
-                  <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_mrt" value="1">
-                    <span>MRT</span>
-                  </label>
-                  <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_mall" value="1">
-                    <span>Mall</span>
-                  </label>
-                  <label class="pillar-toggle-opt">
-                    <input type="checkbox" name="near_school" value="1">
-                    <span>School</span>
-                  </label>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- More preferences toggle -->
-            <button type="button" class="details-toggle" id="recDetailsToggle"
-              aria-expanded="false" aria-controls="recDetailsContent">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" aria-hidden="true">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-              More preferences
-            </button>
-
-            <div class="details-content" id="recDetailsContent" aria-hidden="true">
-              <div class="form-grid">
-
-              <!-- 4. Estate age → hdb_age -->
-              <div class="field field-full">
-                <span class="field-label">Estate Age</span>
-                <div class="pill-group" role="group" aria-label="Estate age">
-                  <input type="radio" name="hdb_age" id="rec_age_new" value="5" class="pill-radio">
-                  <label for="rec_age_new" class="pill-label">New <span class="pill-sub">&lt;10 yrs</span></label>
-                  <input type="radio" name="hdb_age" id="rec_age_recent" value="20" class="pill-radio" checked>
-                  <label for="rec_age_recent" class="pill-label">Recent <span class="pill-sub">10&ndash;30 yrs</span></label>
-                  <input type="radio" name="hdb_age" id="rec_age_estab" value="35" class="pill-radio">
-                  <label for="rec_age_estab" class="pill-label">Established <span class="pill-sub">30&ndash;45 yrs</span></label>
-                  <input type="radio" name="hdb_age" id="rec_age_heritage" value="50" class="pill-radio">
-                  <label for="rec_age_heritage" class="pill-label">Heritage <span class="pill-sub">45+ yrs</span></label>
-                </div>
-              </div>
-
-              <!-- 5. Floor preference → storey_ratio -->
-              <div class="field field-full">
-                <span class="field-label">Floor Preference</span>
-                <div class="pill-group" role="group" aria-label="Floor preference">
-                  <input type="radio" name="storey_ratio" id="rec_fl_low" value="0.25" class="pill-radio">
-                  <label for="rec_fl_low" class="pill-label">Low</label>
-                  <input type="radio" name="storey_ratio" id="rec_fl_mid" value="0.5" class="pill-radio" checked>
-                  <label for="rec_fl_mid" class="pill-label">Mid</label>
-                  <input type="radio" name="storey_ratio" id="rec_fl_high" value="0.75" class="pill-radio">
-                  <label for="rec_fl_high" class="pill-label">High</label>
-                </div>
-              </div>
-
-              <!-- 6. Building height → max_floor_lvl (used with hdb_age to compute estate_height_modernity) -->
-              <div class="field field-full">
-                <span class="field-label">Building Height</span>
-                <div class="pill-group" role="group" aria-label="Building height">
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_low" value="8" class="pill-radio">
-                  <label for="rec_ht_low" class="pill-label">Low-rise <span class="pill-sub">&le;10 floors</span></label>
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_mid" value="15" class="pill-radio" checked>
-                  <label for="rec_ht_mid" class="pill-label">Mid-rise <span class="pill-sub">10&ndash;20 floors</span></label>
-                  <input type="radio" name="max_floor_lvl" id="rec_ht_high" value="25" class="pill-radio">
-                  <label for="rec_ht_high" class="pill-label">High-rise <span class="pill-sub">20+ floors</span></label>
-                </div>
-              </div>
-
-              </div>
-            </div>
-
-            <button type="submit" class="btn-primary" id="recommenderBtn">
-              <span class="btn-spinner" aria-hidden="true"></span>
-              <span class="btn-label">Get Recommendation &rarr;</span>
-            </button>
-
-          </form>
-        </div>
-      </div><!-- /rec-section -->
 
     </div><!-- /form-col -->
 
@@ -520,39 +319,12 @@
     </div><!-- /result-col -->
 
   </div><!-- /page-body -->
+{% endblock %}
 
-  <footer class="footer">
-    &copy; 2026 WOW! Real Estate &middot; For informational purposes only
-  </footer>
-
+{% block scripts %}
   <script>
-  // ── Theme toggle ──────────────────────────────────────────────
-  (function() {
-    const html   = document.documentElement;
-    const btn    = document.getElementById('themeToggle');
-    const sun    = btn.querySelector('.icon-sun');
-    const moon   = btn.querySelector('.icon-moon');
-    const saved  = localStorage.getItem('theme') ||
-      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-
-    function applyTheme(t) {
-      html.setAttribute('data-theme', t);
-      sun.style.opacity  = t === 'dark' ? '1' : '0';
-      moon.style.opacity = t === 'dark' ? '0' : '1';
-      btn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
-    }
-    applyTheme(saved);
-
-    btn.addEventListener('click', () => {
-      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      localStorage.setItem('theme', next);
-      applyTheme(next);
-    });
-  })();
-
   // ── Town typeahead with keyboard navigation ───────────────────
   (function() {
-    // Median cbd_distance (km) per town, derived from dataset transactions
     const CBD_DIST = {
       "CENTRAL AREA":    1.7, "BUKIT MERAH":     3.2, "KALLANG/WHAMPOA": 3.8,
       "TOA PAYOH":       5.3, "GEYLANG":         5.8, "QUEENSTOWN":      5.9,
@@ -684,20 +456,7 @@
     });
   });
 
-// ── Recommender "More preferences" toggle ─────────────────────
-  (function() {
-    const btn     = document.getElementById('recDetailsToggle');
-    const content = document.getElementById('recDetailsContent');
-    if (!btn || !content) return;
-    btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', !open);
-      content.setAttribute('aria-hidden', open);
-      content.classList.toggle('open', !open);
-    });
-  })();
-
-// ── More details toggle ───────────────────────────────────────
+  // ── More details toggle ───────────────────────────────────────
   (function() {
     const btn     = document.getElementById('detailsToggle');
     const content = document.getElementById('detailsContent');
@@ -706,7 +465,6 @@
       btn.setAttribute('aria-expanded', !expanded);
       content.setAttribute('aria-hidden', expanded);
       content.classList.toggle('open', !expanded);
-      // Re-init slider fills when revealed
       if (!expanded) {
         ['liv_mrt_dist','liv_hawker_dist','liv_mall_dist','liv_sec_dist','liv_pri_dist'].forEach(id => {
           const s = document.getElementById(id);
@@ -723,54 +481,44 @@
       '2 ROOM':           [{v:38},{v:44},{v:47,d:true},{v:53}],
       '3 ROOM':           [{v:60},{v:65},{v:67,d:true},{v:69},{v:73}],
       '4 ROOM':           [{v:83},{v:90},{v:93,d:true},{v:96},{v:104}],
-      '5 ROOM':           [{v:107},{v:110,d:true},{v:113},{v:121}],
-      'EXECUTIVE':        [{v:130},{v:140,d:true},{v:146},{v:152}],
-      'MULTI-GENERATION': [{v:140},{v:153,d:true},{v:162}],
+      '5 ROOM':           [{v:110},{v:113,d:true},{v:121},{v:132}],
+      'EXECUTIVE':        [{v:133},{v:143,d:true},{v:155},{v:164}],
+      'MULTI-GENERATION': [{v:155},{v:167,d:true}],
     };
+    const SQM_TO_SQFT = 10.7639;
+    let useSqft = false;
 
-    const sel    = document.getElementById('floor_area_sqm');
-    const btnSqm  = document.getElementById('unit_sqm');
-    const btnSqft = document.getElementById('unit_sqft');
-    let useSqft   = false;
-    let currentType = '';
+    const sqmBtn  = document.getElementById('unit_sqm');
+    const sqftBtn = document.getElementById('unit_sqft');
+    const sel     = document.getElementById('floor_area_sqm');
 
-    function label(v) {
-      return useSqft ? (Math.round(v * 10.764) + ' sqft') : (v + ' sqm');
-    }
-
-    function populateSqm(flatType) {
-      currentType = flatType;
-      const sizes = SQM_BY_TYPE[flatType] || [];
-      sel.innerHTML = '';
-      if (!sizes.length) {
-        sel.add(new Option('\u2014 select flat type first \u2014', ''));
+    function populateSqm(type) {
+      const rows = SQM_BY_TYPE[type] || [];
+      if (!rows.length) {
+        sel.innerHTML = '<option value="">&#8212; no data for this type &#8212;</option>';
         return;
       }
-      sizes.forEach(function (s) {
-        const opt = new Option(label(s.v), s.v);
-        if (s.d) opt.selected = true;
-        sel.add(opt);
-      });
+      sel.innerHTML = rows.map(r => {
+        const displayVal = useSqft ? Math.round(r.v * SQM_TO_SQFT) : r.v;
+        const unit = useSqft ? ' sqft' : ' sqm';
+        return `<option value="${r.v}"${r.d ? ' selected' : ''}>${displayVal}${unit}</option>`;
+      }).join('');
     }
 
-    function relabelOptions() {
-      Array.from(sel.options).forEach(function (opt) {
-        if (opt.value) opt.text = label(parseFloat(opt.value));
-      });
-    }
-
-    btnSqm && btnSqm.addEventListener('click', function () {
+    sqmBtn.addEventListener('click', () => {
       useSqft = false;
-      btnSqm.classList.add('active'); btnSqm.setAttribute('aria-pressed', 'true');
-      btnSqft.classList.remove('active'); btnSqft.setAttribute('aria-pressed', 'false');
-      relabelOptions();
+      sqmBtn.classList.add('active');   sqmBtn.setAttribute('aria-pressed', 'true');
+      sqftBtn.classList.remove('active'); sqftBtn.setAttribute('aria-pressed', 'false');
+      const checked = document.querySelector('input[name="flat_type"]:checked');
+      if (checked) populateSqm(checked.value);
     });
 
-    btnSqft && btnSqft.addEventListener('click', function () {
+    sqftBtn.addEventListener('click', () => {
       useSqft = true;
-      btnSqft.classList.add('active'); btnSqft.setAttribute('aria-pressed', 'true');
-      btnSqm.classList.remove('active'); btnSqm.setAttribute('aria-pressed', 'false');
-      relabelOptions();
+      sqftBtn.classList.add('active');  sqftBtn.setAttribute('aria-pressed', 'true');
+      sqmBtn.classList.remove('active'); sqmBtn.setAttribute('aria-pressed', 'false');
+      const checked = document.querySelector('input[name="flat_type"]:checked');
+      if (checked) populateSqm(checked.value);
     });
 
     document.querySelectorAll('input[name="flat_type"]').forEach(function (radio) {
@@ -778,60 +526,6 @@
       if (radio.checked) populateSqm(radio.value);
     });
   })();
-
-  // ── Recommender toggle ────────────────────────────────────────
-  (function() {
-    const btn     = document.getElementById('recToggle');
-    const section = document.getElementById('recSection');
-    btn.addEventListener('click', () => {
-      const expanded = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', !expanded);
-      section.setAttribute('aria-hidden', expanded);
-      section.classList.toggle('open', !expanded);
-    });
-  })();
-
-  // ── Result panel helpers ──────────────────────────────────────
-  const panel         = document.getElementById('resultPanel');
-  const resultContent = document.getElementById('resultContent');
-  const resultEmpty   = document.getElementById('resultEmpty');
-
-  function showResult() {
-    panel.classList.add('has-result');
-    panel.classList.remove('is-loading');
-    document.getElementById('resultContent').style.display = '';
-    // Scroll result into view on tablet/mobile
-    if (window.innerWidth < 1024) {
-      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
-
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function fadeInEl(el, delayMs) {
-    if (reducedMotion) { el.style.opacity = '1'; return; }
-    el.style.opacity = '0';
-    setTimeout(() => {
-      el.classList.add('fade-in');
-      el.style.opacity = '';
-    }, delayMs);
-  }
-
-  function countUp(el, target) {
-    if (reducedMotion || target === 0) {
-      el.textContent = '$' + Math.round(target).toLocaleString();
-      return;
-    }
-    const dur = 300;
-    const t0  = performance.now();
-    function tick(now) {
-      const p = Math.min((now - t0) / dur, 1);
-      const e = 1 - Math.pow(1 - p, 3); // ease-out cubic
-      el.textContent = '$' + Math.round(target * e).toLocaleString();
-      if (p < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
 
   // ── Render estimator result ───────────────────────────────────
   function renderEstimatorResult(data) {
@@ -846,20 +540,16 @@
     const ctaBtn        = document.getElementById('resultCtaBtn');
     const labelEl       = document.getElementById('resultLabel');
 
-    // Reset visibility
     labelEl.textContent      = 'Estimated Resale Price';
     priceEl.style.display    = '';
     townEl.style.display     = 'none';
     rangeEl.style.display    = '';
     townDescEl.style.display = 'none';
 
-    // Border flash
     panel.style.borderColor = 'var(--accent)';
 
-    // t=100ms: count up price
     setTimeout(() => countUp(priceEl, data.price_raw || 0), 100);
 
-    // t=400ms: range + chips
     setTimeout(() => {
       rangeEl.textContent = `Range: ${data.price_low} \u2013 ${data.price_high}`;
       fadeInEl(rangeEl, 0);
@@ -881,21 +571,15 @@
       fadeInEl(chipsEl, 0);
     }, 400);
 
-    // t=600ms: reassurance
     setTimeout(() => {
       reassuranceEl.textContent = 'Estimate based on real Singapore HDB resale data';
       fadeInEl(reassuranceEl, 0);
     }, 600);
 
-    // t=900ms: divider + CTA
     setTimeout(() => {
-      ctaLabelEl.textContent = 'Want to explore this further?';
-      ctaBtn.textContent = 'Find your ideal town \u2192';
-      ctaBtn.onclick = () => {
-        const recBtn = document.getElementById('recToggle');
-        if (recBtn.getAttribute('aria-expanded') !== 'true') recBtn.click();
-        recBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      };
+      ctaLabelEl.textContent = 'Not sure which town to buy in?';
+      ctaBtn.textContent = 'Town Recommender \u2192';
+      ctaBtn.onclick = () => { window.location.href = '/recommender'; };
       fadeInEl(dividerEl, 0);
       fadeInEl(ctaLabelEl, 50);
       fadeInEl(ctaBtn, 100);
@@ -904,93 +588,7 @@
     showResult();
   }
 
-  // ── Render recommender result ─────────────────────────────────
-  function renderRecommenderResult(data) {
-    const priceEl       = document.getElementById('resultPrice');
-    const townEl        = document.getElementById('resultTown');
-    const rangeEl       = document.getElementById('resultRange');
-    const townDescEl    = document.getElementById('resultTownDesc');
-    const chipsEl       = document.getElementById('resultChips');
-    const reassuranceEl = document.getElementById('resultReassurance');
-    const dividerEl     = document.getElementById('resultDivider');
-    const ctaLabelEl    = document.getElementById('resultCtaLabel');
-    const ctaBtn        = document.getElementById('resultCtaBtn');
-    const labelEl       = document.getElementById('resultLabel');
-
-    labelEl.textContent      = 'Your Best-Match Towns';
-    priceEl.style.display    = 'none';
-    rangeEl.style.display    = 'none';
-    townDescEl.style.display = 'none';
-    townEl.style.display     = 'none';
-
-    panel.style.borderColor = 'var(--accent)';
-
-    setTimeout(() => {
-      chipsEl.innerHTML = '';
-      if (data.rec_towns && data.rec_towns.length) {
-        const toTitle = s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-        data.rec_towns.forEach((item, idx) => {
-          const name  = typeof item === 'string' ? item : item.name;
-          const score = (typeof item === 'object' && item.score != null) ? item.score : null;
-          const chip  = document.createElement('span');
-          chip.className = idx === 0 ? 'chip chip--primary' : 'chip';
-          if (idx > 0) chip.style.fontSize = Math.max(0.72, 0.88 - (idx - 1) * 0.05) + 'em';
-          chip.textContent = toTitle(name);
-          if (score !== null) {
-            const badge = document.createElement('span');
-            badge.className   = 'chip-score';
-            badge.textContent = score + '%';
-            chip.appendChild(badge);
-          }
-          chipsEl.appendChild(chip);
-        });
-        fadeInEl(chipsEl, 0);
-      }
-    }, 300);
-
-    setTimeout(() => {
-      reassuranceEl.textContent = 'Matched from real Singapore HDB resale data';
-      fadeInEl(reassuranceEl, 0);
-    }, 500);
-
-    setTimeout(() => {
-      ctaLabelEl.textContent = 'Want to estimate a price instead?';
-      ctaBtn.textContent     = 'Price Estimator \u2192';
-      ctaBtn.onclick = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        document.getElementById('estimatorForm').querySelector('.btn-primary').focus();
-      };
-      fadeInEl(dividerEl, 0);
-      fadeInEl(ctaLabelEl, 50);
-      fadeInEl(ctaBtn, 100);
-    }, 700);
-
-    showResult();
-  }
-
-  // ── Fetch submit helpers ──────────────────────────────────────
-  // NOTE: On reset, the button always shows "Re-estimate →" / "Get Recommendation →"
-  // even on the first submit. This matches the spec (Section 4: "resets to Re-estimate →").
-  // On fetch error the label also resets — no estimate is shown, but the button is usable.
-  function setLoading(btn, loading) {
-    btn.disabled = loading;
-    btn.classList.toggle('loading', loading);
-    btn.querySelector('.btn-label').textContent = loading
-      ? (btn.id === 'estimatorBtn' ? 'Estimating\u2026' : 'Finding\u2026')
-      : (btn.id === 'estimatorBtn' ? 'Re-estimate \u2192' : 'Get Recommendation \u2192');
-    // Show skeleton in result panel while loading
-    if (loading) {
-      panel.classList.add('has-result', 'is-loading');
-      document.getElementById('resultContent').style.display = 'none';
-    } else {
-      panel.classList.remove('is-loading');
-    }
-  }
-
   // ── Estimator form submit ─────────────────────────────────────
-  // NOTE: setLoading(btn, false) fires immediately after fetch resolves (~200-500ms),
-  // while the animation chain runs for ~900ms. This is intentional — the button
-  // becomes interactive again while the result animates in.
   document.getElementById('estimatorForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     const btn = document.getElementById('estimatorBtn');
@@ -1020,51 +618,5 @@
       setLoading(btn, false);
     }
   });
-
-  // ── Sync planning_region hidden input with selected location pill ────────
-  document.querySelectorAll('input[name="cbd_distance_km"]').forEach(function(radio) {
-    radio.addEventListener('change', function() {
-      const map = {
-        'rec_loc_central':   'Central',
-        'rec_loc_east':      'East',
-        'rec_loc_northeast': 'North-East',
-        'rec_loc_west':      'West',
-        'rec_loc_north':     'North'
-      };
-      document.getElementById('planning_region_value').value = map[this.id] || 'Central';
-    });
-  });
-
-  // ── Recommender form submit ───────────────────────────────────
-  document.getElementById('recommenderForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('recommenderBtn');
-    setLoading(btn, true);
-    try {
-      const res = await fetch('/recommend', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json' },
-        body: new FormData(this),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      renderRecommenderResult(data);
-    } catch (err) {
-      console.error(err);
-      panel.classList.add('has-result');
-      panel.classList.remove('is-loading');
-      document.getElementById('resultContent').style.display = '';
-      document.getElementById('resultLabel').textContent = 'Unable to get recommendation';
-      document.getElementById('resultTown').style.display = 'none';
-      document.getElementById('resultRange').textContent = 'Check your connection and try again.';
-      document.getElementById('resultRange').style.display = '';
-      document.getElementById('resultChips').innerHTML = '';
-      document.getElementById('resultReassurance').textContent = '';
-    } finally {
-      setLoading(btn, false);
-    }
-  });
   </script>
-
-</body>
-</html>
+{% endblock %}

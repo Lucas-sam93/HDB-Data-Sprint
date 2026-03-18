@@ -124,6 +124,33 @@ body {
   display: none; /* shown only ≥1024px via media query below */
 }
 
+/* ── Hero nav ──────────────────────────────────────────────── */
+.hero-nav {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+.hero-nav-link {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.55);
+  text-decoration: none;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  transition: color 150ms, background 150ms;
+  white-space: nowrap;
+}
+.hero-nav-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+.hero-nav-link.active {
+  color: var(--accent);
+  background: rgba(224,82,6,0.15);
+  font-weight: 600;
+}
+
 /* ── Theme toggle ──────────────────────────────────────────── */
 .theme-toggle {
   background: transparent;
@@ -425,55 +452,6 @@ input[type="range"]::-moz-range-thumb {
 }
 .btn-primary.loading .btn-spinner { display: block; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── Recommender toggle link ───────────────────────────────── */
-.rec-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: 1.5px solid var(--border);
-  border-radius: var(--r-input);
-  color: var(--text);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  padding: 0.65rem 1rem;
-  margin-top: 0.75rem;
-  width: 100%;
-  text-align: left;
-  transition: border-color var(--ease), color var(--ease), background var(--ease);
-}
-.rec-toggle:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(224,82,6,0.04);
-}
-.rec-toggle svg { width: 15px; height: 15px; flex-shrink: 0; margin-left: auto; transition: transform 300ms ease-out; }
-.rec-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
-
-.rec-section {
-  display: grid;
-  grid-template-rows: 0fr;
-  visibility: hidden;
-  transition: grid-template-rows 280ms ease-out, visibility 0s 280ms;
-}
-.rec-section > .rec-section-inner {
-  overflow: hidden;
-}
-.rec-section.open {
-  grid-template-rows: 1fr;
-  visibility: visible;
-  transition: grid-template-rows 280ms ease-out, visibility 0s;
-}
-.rec-section-inner {
-  border-top: 1px solid var(--border);
-  margin-top: 1rem;
-  padding-top: 1.25rem;
-}
-.rec-section-inner .card-title { font-size: 1.1rem; margin-bottom: 0.2rem; }
-.rec-section-inner .card-hint { margin-bottom: 1.25rem; }
 
 /* ── Result panel ──────────────────────────────────────────── */
 .result-panel {
@@ -814,7 +792,6 @@ input[type="range"]::-moz-range-thumb {
   .result-cta-label,
   .result-cta-btn,
   .details-content,
-  .rec-section,
   .btn-spinner,
   .fade-in {
     animation: none !important;
@@ -823,8 +800,7 @@ input[type="range"]::-moz-range-thumb {
     grid-template-rows: unset !important;
   }
   .details-content { visibility: hidden; }
-  .details-content.open,
-  .rec-section.open { visibility: visible; }
+  .details-content.open { visibility: visible; }
 }
 
 /* ── Pill sub-label (small descriptive text inside pill) ─────── */

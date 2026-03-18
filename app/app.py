@@ -110,7 +110,12 @@ except FileNotFoundError:
 
 @app.route("/")
 def index():
-    return render_template("index.html", active_tab="estimator")
+    return render_template("index.html", active_page="estimator")
+
+
+@app.route("/recommender")
+def recommender_page():
+    return render_template("recommender.html", active_page="recommender")
 
 
 # ---------------------------------------------------------------------------
