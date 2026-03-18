@@ -18,6 +18,19 @@
   --r-input:     10px;
   --ease:        150ms ease-out;
   --ease-in:     150ms ease-in;
+
+  /* ── Hero theme tokens (light defaults) ── */
+  --hero-bg:           #ffffff;
+  --hero-sep:          rgba(0,0,0,0.07);
+  --hero-text:         #0f172a;
+  --hero-sub:          #64748b;
+  --hero-nav-track:    rgba(15,23,42,0.05);
+  --hero-nav-bd:       rgba(15,23,42,0.08);
+  --hero-link:         rgba(15,23,42,0.5);
+  --hero-link-hover:   rgba(15,23,42,0.06);
+  --hero-toggle-bd:    #e2e8f0;
+  --hero-toggle-fg:    #64748b;
+  --hero-glow-opacity: 0;
 }
 [data-theme="dark"] {
   --bg:          #0f172a;
@@ -30,6 +43,19 @@
   --dim:         #64748b;
   --input-bg:    rgba(15,23,42,0.8);
   --success:     #4ade80;
+
+  /* ── Hero theme tokens (dark overrides) ── */
+  --hero-bg:           #0f172a;
+  --hero-sep:          transparent;
+  --hero-text:         #ffffff;
+  --hero-sub:          #94a3b8;
+  --hero-nav-track:    rgba(255,255,255,0.06);
+  --hero-nav-bd:       rgba(255,255,255,0.08);
+  --hero-link:         rgba(255,255,255,0.5);
+  --hero-link-hover:   rgba(255,255,255,0.1);
+  --hero-toggle-bd:    #334155;
+  --hero-toggle-fg:    #94a3b8;
+  --hero-glow-opacity: 0.18;
 }
 
 /* ── Base ──────────────────────────────────────────────────── */
@@ -71,13 +97,15 @@ body {
 /* ── Hero ──────────────────────────────────────────────────── */
 .hero {
   position: relative;
-  background: var(--navy);
+  background: var(--hero-bg);
+  border-bottom: 1px solid var(--hero-sep);
   overflow: hidden;
   padding: 1.25rem 2rem;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+  transition: background 200ms ease-out, border-color 200ms ease-out;
 }
 .hero::before {
   content: '';
@@ -86,9 +114,10 @@ body {
   border-radius: 50%;
   background: var(--accent);
   filter: blur(80px);
-  opacity: 0.18;
+  opacity: var(--hero-glow-opacity);
   top: -100px; left: -60px;
   pointer-events: none;
+  transition: opacity 200ms ease-out;
 }
 .hero-brand {
   flex-shrink: 0;
@@ -101,6 +130,12 @@ body {
   width: auto;
   display: block;
   object-fit: contain;
+  mix-blend-mode: multiply; /* makes white bg transparent on light hero */
+  transition: filter 200ms ease-out;
+}
+[data-theme="dark"] .hero-logo {
+  mix-blend-mode: normal;
+  filter: brightness(1.1);
 }
 .hero-centre {
   flex: 1;
@@ -113,20 +148,23 @@ body {
   font-family: 'DM Serif Display', Georgia, serif;
   font-size: clamp(1.5rem, 3vw, 2rem);
   font-weight: 400;
-  color: #fff;
+  color: var(--hero-text);
   line-height: 1.2;
   letter-spacing: -0.01em;
+  transition: color 200ms ease-out;
 }
 .hero-subtitle {
-  color: var(--muted);
+  color: var(--hero-sub);
   font-size: 0.82rem;
   margin-top: 0.25rem;
+  transition: color 200ms ease-out;
 }
 .hero-trust {
-  color: #94a3b8;
+  color: var(--hero-sub);
   font-size: 0.75rem;
   margin-top: 0.15rem;
   display: none; /* shown only ≥1024px via media query below */
+  transition: color 200ms ease-out;
 }
 
 /* ── Hero nav ──────────────────────────────────────────────── */
@@ -137,14 +175,15 @@ body {
   justify-content: center;
   margin-top: 0.75rem;
   padding: 0.25rem;
-  background: rgba(255,255,255,0.06);
+  background: var(--hero-nav-track);
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--hero-nav-bd);
+  transition: background 200ms ease-out, border-color 200ms ease-out;
 }
 .hero-nav-link {
   font-size: 0.82rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.5);
+  color: var(--hero-link);
   text-decoration: none;
   padding: 0.3rem 0.9rem;
   border-radius: 999px;
@@ -152,8 +191,8 @@ body {
   white-space: nowrap;
 }
 .hero-nav-link:hover {
-  color: #fff;
-  background: rgba(255,255,255,0.1);
+  color: var(--hero-text);
+  background: var(--hero-link-hover);
 }
 .hero-nav-link.active {
   color: #fff;
@@ -164,12 +203,12 @@ body {
 /* ── Theme toggle ──────────────────────────────────────────── */
 .theme-toggle {
   background: transparent;
-  border: 1px solid #334155;
+  border: 1px solid var(--hero-toggle-bd);
   border-radius: 8px;
   padding: 0.4rem 0.6rem;
   cursor: pointer;
-  color: #94a3b8;
-  transition: border-color var(--ease), color var(--ease);
+  color: var(--hero-toggle-fg);
+  transition: border-color 200ms ease-out, color 200ms ease-out;
   flex-shrink: 0;
   align-self: flex-start;
   display: flex;
