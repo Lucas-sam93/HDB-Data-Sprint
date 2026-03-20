@@ -58,6 +58,38 @@ We built **W.O.W. (Worth-Or-What?)**, an end-to-end data product that combines e
 
 ---
 
+## Results & Model Performance
+
+### Price Prediction (Regression)
+
+Five models were trained and evaluated on the HDB resale dataset. **LightGBM** was selected for deployment due to its minimal train-test discrepancy (best generalisation) and fastest runtime, despite XGBoost achieving a marginally higher R².
+
+| Model | Train R² | Test R² | Train–Test Gap | Test RMSE |
+|-------|----------|---------|----------------|-----------|
+| XGBoost | 0.9777 | 0.9711 | 0.0066 | $29,672 |
+| Random Forest | 0.9719 | 0.9605 | 0.0115 | $34,669 |
+| CatBoost | 0.9540 | 0.9529 | 0.0011 | $37,846 |
+| **LightGBM** ✅ | **0.9525** | **0.9513** | **0.0013** | **$38,508** |
+| Linear Regression | 0.7897 | 0.7881 | 0.0016 | $80,287 |
+
+> **Why LightGBM over XGBoost?** While XGBoost scored highest on test R², its larger train-test gap (0.0066 vs 0.0013) indicates slight overfitting. LightGBM offers a better balance of accuracy, generalisation, and speed — critical for a production web app.
+
+### Town Recommendation (Classification)
+
+Five classifiers were trained to predict K-Means lifestyle clusters. **LightGBM** was again selected — within 0.01 of the best test accuracy while being 4× faster than Random Forest.
+
+| Model | Train Accuracy | Test Accuracy | Generalization Gap | Runtime (s) |
+|-------|----------------|---------------|--------------------|-------------|
+| Random Forest | 1.0000 | 0.9998 | 0.0002 | 44.75 |
+| **LightGBM** ✅ | **0.9889** | **0.9971** | **−0.0082** | **11.23** |
+| XGBoost | 0.9676 | 0.9764 | −0.0088 | 15.94 |
+| CatBoost | 0.9344 | 0.9355 | −0.0011 | 27.95 |
+| Logistic Regression | 0.7123 | 0.6887 | 0.0236 | 3.42 |
+
+> **Selection criteria:** Among models within 0.01 of the best test accuracy, pick the one with the lowest runtime. LightGBM's 99.71% accuracy at 11s runtime made it the clear choice.
+
+---
+
 ## Dataset
 
 `data.csv` — HDB resale transaction data (**270,620 rows, 76 columns**) sourced from [data.gov.sg](https://data.gov.sg). Tracked via Git LFS.
